@@ -1,0 +1,14 @@
+# RoleBinding for PSP with cray-postgres-operator ServiceAccount in services namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "cray-postgres-operator.fullname" . }}-psp
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: privileged-psp
+subjects:
+- kind: ServiceAccount
+  name: {{ template "cray-postgres-operator.fullname" . }} 
+  namespace: {{ .Release.Namespace }}

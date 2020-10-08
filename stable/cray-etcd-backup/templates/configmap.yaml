@@ -1,0 +1,57 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: etcd-backup-restore-config
+  namespace: operators
+data:
+#
+#
+# The following projects are intentionally not being backed up.
+#
+# PROJECT                           REASON
+# -------  ---------------------------------------------------------------------
+#  HBTD     If data is lost, when ETCD recovers, HBTD will automatically
+#           re-learn what it needs to and re-populate ETCD.
+#
+#  HMNFD    Data can also change a small amount if compute nodes die and/or reboot.
+#           If the backup doesn’t reflect the state of the machine, then restoring
+#           it is not very useful – it will result in things not working correctly.
+#           It’s almost guaranteed to be wrong.
+#
+#  REDS     Etcd data is a cache and can/will be regenerated as the system runs,
+#           and restoring old data could confuse the discovery process.
+#
+#  CPS      CPS uses etcd to keep its working data, which is generated as the system
+#           boots. If the CPS etcd instance becomes corrupt or fails, then CPS will
+#           fail too and all the compute nodes and UANs using CPS will fail. Once
+#           that happens, restoring CPS etcd from backup won’t help since rebooting
+#           all the nodes will repopulate the CPS etcd instance.
+#
+# NOTE: Fields below are:
+#
+#   <project>.<namespace>.<backup_interval_in_seconds>.<max_backups>.<tls_secret>
+#
+  clusters.txt: |
+    cray-bos.services.86400.7.
+    cray-bss.services.86400.7.
+    cray-crus.services.86400.7.
+    cray-externaldns.services.86400.7.
+    cray-fw-update.services.86400.7.
+    cray-vault.vault.86400.7.cray-vault-etcd-tls
+    slingshot-controllers.services.3600.24.
+
+  create_periodic_backups.sh: |-
+    {{- .Files.Get "files/create_periodic_backups.sh" | nindent 4 }}
+
+  create_aws_creds.sh: |-
+    {{- .Files.Get "files/create_aws_creds.sh" | nindent 4 }}
+
+  list_backups: |-
+    {{- .Files.Get "files/list_backups" | nindent 4 }}
+
+  create_backup: |-
+    {{- .Files.Get "files/create_backup" | nindent 4 }}
+
+  restore_from_backup: |-
+    {{- .Files.Get "files/restore_from_backup" | nindent 4 }}

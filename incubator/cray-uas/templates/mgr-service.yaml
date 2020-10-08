@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cray-uas.name" . }}-mgr
+  labels:
+    app: {{ include "cray-uas.name" . }}-mgr
+    helm.sh/chart: {{ include "cray-uas.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: {{ .Values.services.mgr.type }}
+  selector:
+    app.kubernetes.io/name: {{ include "cray-uas.name" . }}-mgr
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: {{ include "cray-uas.name" . }}-mgr
+      port: {{ .Values.services.mgr.port }}
+      protocol: TCP

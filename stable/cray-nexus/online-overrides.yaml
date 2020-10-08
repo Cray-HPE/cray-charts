@@ -1,0 +1,97 @@
+# Example Nexus Repository Manager (NXRM) configuration that adds proxy and
+# group "docker" repositories to the default airgap setup provided by
+# cray-nexus-setup.
+schema: v2
+name: nexus
+version: 1.0.0
+repositories:
+  docker: registry.local
+  helm: charts.local
+failOnFirstError: true
+charts:
+- name: cray-nexus
+  version: 0.4.0
+  namespace: nexus
+  values:
+    sonatype-nexus:
+      service:
+        ports:
+        # Port for "registry.local" group repository added below
+        - name: group-registry
+          port: 5000
+          targetPort: 5000
+        # Port for the default registry
+        - name: default-registry
+          port: 5003
+          targetPort: 5003
+    istio:
+      ingress:
+        hosts:
+          registry:
+            routes:
+	      # Writes goto port 5003 (default registry). NXRM does not (as of
+	      # yet) support pushing to group repositories, see
+	      # https://issues.sonatype.org/browse/NEXUS-10471. Until then, a
+	      # port must be exposed in order to enable images to be pushed to
+	      # this registry. See also, https://stackoverflow.com/a/54590014
+	      # which describes using a reverse proxy to direct writes to the
+	      # desired registry.
+              - match:
+                - method:
+                    exact: HEAD
+                  uri:
+                    regex: "^/v(1|2)/.*/blobs/sha256:[A-Fa-f0-9]{64}$"
+                - method:
+                    exact: POST
+                - method:
+                    exact: PUT
+                - method:
+                    exact: PATCH
+                - method:
+                    exact: DELETE
+                port: 5003
+                headers:
+                  request:
+                    add:
+                      X-WEBAUTH-USER: admin
+                    remove:
+                    - Authorization
+              # Reads goto port 5000 (group registry)
+              - port: 5000
+                headers:
+                  request:
+                    add:
+                      X-WEBAUTH-USER: admin
+                    remove:
+                    - Authorization
+          ui:
+            authority: nexus.drax.dev.cray.com
+            enabled: true
+
+# Corresponding overrides for cray-nexus-setup to illustrate push/pull to/from
+# a registry group with a hosted member.
+- name: cray-nexus-setup
+  version: 0.1.0
+  namespace: nexus
+  values:
+    additionalRepositories:
+    # Proxy registry to dtr.dev.cray.com
+    - name: dtr.dev.cray.com
+      format: docker
+      storage:
+        blobStoreName: latest
+        writePolicy: ALLOW
+      proxy:
+        remoteUrl: https://dtr.dev.cray.com/
+    # Group registry to pull from the default registry and dtr.dev.cray.com
+    - name: registry.local
+      format: docker
+      storage:
+        blobStoreName: latest
+      group:
+        memberNames:
+        - default-registry
+        - dtr.dev.cray.com
+      docker:
+        # Corresponds to the group-registry port defined in cray-nexus.service
+        httpPort: 5000

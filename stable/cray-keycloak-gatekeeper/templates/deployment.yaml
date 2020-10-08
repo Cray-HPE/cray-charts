@@ -1,0 +1,116 @@
+{{- $root := . -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "cray-keycloak-gatekeeper.fullname" . }}-ingress
+  labels:
+{{ include "cray-keycloak-gatekeeper.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "cray-keycloak-gatekeeper.name" . }}-ingress
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        app: {{ template "cray-keycloak-gatekeeper.name" . }}-ingress
+    spec:
+      containers:
+      - name: keycloak-gatekeeper
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args:
+        - --enable-logging=true
+        - --verbose
+        - --skip-openid-provider-tls-verify
+        - --skip-upstream-tls-verify
+        - --enable-self-signed-tls
+        - --self-signed-tls-hostnames
+        - $(INSTANCE_IP)
+{{- range .Values.hosts }}
+        - --self-signed-tls-hostnames
+        - {{ . }}
+{{- end }}
+        # Secure cookies have to be disabled so the /oauth/authorize redirect
+        # is able to associate state when fetching an access token.
+        - --secure-cookie=false
+        #- --enable-security-filter
+        #- --hostnames
+        #- $(INSTANCE_IP):443
+{{- range .Values.hosts }}
+        #- --hostnames
+        #- {{ . }}
+{{- end }}
+        - --preserve-host
+        #- --resources
+        #- uri=/oauth/*|white-listed=true
+        - --resources
+        - uri=/*
+        env:
+        - name: PROXY_LISTEN
+          value: "0.0.0.0:8443"
+        - name: PROXY_DISCOVERY_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.keycloakClientSecret }}
+              key: discovery-url
+        - name: PROXY_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.keycloakClientSecret }}
+              key: client-id
+        - name: PROXY_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.keycloakClientSecret }}
+              key: client-secret
+        - name: PROXY_UPSTREAM_URL
+          value: {{ .Values.upstreamUrl }}
+        - name: INSTANCE_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        # The go resolver uses DNS lookup first by default but we need to use
+        # /etc/hosts to pick up the hostAlias set below, so switch to cgo.
+        - name: GODEBUG
+          value: netdns=cgo
+        ports:
+        - containerPort: 8443
+          name: https
+          protocol: TCP
+        livenessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /oauth/health
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /oauth/health
+            port: 8443
+            scheme: HTTPS
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          requests:
+            memory: "20Mi"
+            cpu: "100m"
+          limits:
+            memory: "100Mi"
+            cpu: "2"
+      dnsPolicy: ClusterFirst
+{{- with .Values.hostAliases }}
+      hostAliases:
+        {{- toYaml . | nindent 6 }}
+{{- end }}
+      restartPolicy: Always

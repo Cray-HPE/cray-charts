@@ -1,0 +1,56 @@
+# Copyright 2020, Cray Inc.
+{{- $service := (index .Values "sonatype-nexus" "service") }}
+{{- if $service.enabled }}
+{{- $root := . }}
+{{- range $name, $item := .Values.additionalServices }}
+{{- if .enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+{{- if .name }}
+  name: {{ .name }}
+{{- else }}
+  name: {{ template "cray-nexus.name" $root }}-{{ $name }}
+{{- end }}
+  labels:
+{{ include "cray-nexus.labels" $root | indent 4 }}
+{{- if .labels }}
+{{ toYaml .labels | indent 4 }}
+{{- end }}
+{{- if .annotations }}
+  annotations:
+{{ toYaml .annotations | indent 4 }}
+{{- end }}
+spec:
+  ports:
+  {{- if .ports }}
+  {{- with .ports  }}
+{{ toYaml . | indent 2 }}
+  {{- end }}
+  {{- else }}
+  {{- if $service.portName }}
+  - name: {{ $service.portName }}
+    port: {{ $service.port }}
+    targetPort: {{ $service.targetPort }}
+  {{- end }}
+  {{- with $service.ports  }}
+{{ toYaml . | indent 2 }}
+  {{- end }}
+  {{- end }}
+  selector:
+    app: {{ template "cray-nexus.name" $root }}
+    release: {{ $root.Release.Name }}
+  type: {{ .type }}
+  {{- if .loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- range .loadBalancerSourceRanges }}
+    - {{ . }}
+    {{- end }}
+  {{- end }}
+  {{- if and (eq .type "LoadBalancer") .loadBalancerIP }}
+  loadBalancerIP: {{ .loadBalancerIP }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

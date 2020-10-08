@@ -1,0 +1,19 @@
+#
+# Copyright 2020 Hewlett Packard Enterprise Development LP
+#
+# These are the images that will be pre-cached, this is an example
+# and will be overridden in manifest:
+#
+cacheImages:
+  - docker.io/sonatype/nexus3:3.25.0
+  - k8s.gcr.io/pause:3.1
+
+#
+# Amount of time in seconds between cache refresh
+#
+cacheRefreshSeconds: "86400"
+
+nameOverride: ""
+fullnameOverride: ""
+podAnnotations: {}
+alpineImage: dtr.dev.cray.com/baseos/alpine:3.11.5

@@ -1,0 +1,30 @@
+---
+{{- if .Values.authn.enabled }}
+apiVersion: "authentication.istio.io/v1alpha1"
+kind: "Policy"
+metadata:
+  name: "istio-ingressgateway-authn"
+spec:
+  {{- if .Values.global.mtls.enabled }}
+  peers:
+  - mtls: {}
+  {{- end }}
+  targets:
+  {{- range .Values.authn.targets }}
+  - name: {{ . }}
+  {{- end }}
+  principalBinding: USE_ORIGIN
+  origins:
+  {{- range $key, $spec := .Values.authn.origins }}
+  {{- if $spec.enabled }}
+  {{- range $ikey, $ispec := $spec.issuers }}
+  - {{ $spec.type }}:
+      issuer: {{ $ispec | quote }}
+      jwksUri: {{ $spec.certs | quote }}
+      {{- if $spec.options }}
+{{ toYaml $spec.options | indent 6 }}
+      {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}

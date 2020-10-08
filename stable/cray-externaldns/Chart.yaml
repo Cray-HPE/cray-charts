@@ -1,0 +1,13 @@
+apiVersion: v1
+appVersion: 1.5.2
+description: Support for DNS outside kubernets LoadBalancers and Annotation-based
+keywords:
+- coredns
+- dns
+- externaldns
+icon: https://raw.githubusercontent.com/coredns/logo/master/Icon/CoreDNS_Colour_Icon.svg
+sources:
+- https://github.com/coredns/coredns
+- https://github.com/kubernetes-incubator/external-dns
+name: cray-externaldns
+version: 0.9.3

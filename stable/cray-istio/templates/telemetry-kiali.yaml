@@ -1,0 +1,51 @@
+# See https://istio.io/docs/tasks/telemetry/gateways/
+{{- if .Values.istio.kiali.enabled }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: kiali
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: kiali
+    chart: kiali
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  gateways:
+  - {{ .Values.global.authGateway }}
+  hosts:
+  - {{ .Values.istio.kiali.externalAuthority }}
+  http:
+  - match:
+    - authority:
+        exact: {{ .Values.istio.kiali.externalAuthority }}
+    route:
+    - destination:
+        host: kiali
+        port:
+          number: 20001
+      headers:
+        request:
+          # Remove Authorization header since the configured auth stategy is
+          # "anonymous" and relies on downstream authorization at the Istio
+          # ingress gateway.
+          remove:
+          - Authorization
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: kiali
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: kiali
+    chart: kiali
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  host: kiali
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+{{- end }}

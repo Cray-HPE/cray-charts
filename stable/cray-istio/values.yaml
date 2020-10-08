@@ -1,0 +1,389 @@
+# Default values for cray-istio.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+gatewayNamespace: "services"
+
+servicesGateway:
+  tls: true
+  certPath: "/etc/istio/ingressgateway-certs/tls.crt"
+  keyPath: "/etc/istio/ingressgateway-certs/tls.key"
+  redirect: true
+  hosts:
+    - "*"
+
+# extraIngressServices defines additional ingress services based on a gatway
+# defined in `istio.gateways`. The name of these services will match the name
+# of the gateway with a suffix based on the identifier. By default, labels,
+# selectors, and the ports are copied from the specified `gateway`. For
+# NodePort services, `nodePorts` will map named ports from the gateway to the
+# given node port. To avoid conflicts, `annotations` are independent from the
+# gateway's `serviceAnnotations`, so you'll need to explicitly duplicate
+# annotations as desired. Additional parameters (e.g., `loadBalancerIP`) may be
+# specified under `spec`.
+extraIngressServices:
+  # Deprecation warning: The "-cmn" ingress service is deprecated and will be
+  # removed in a future release. The preferred service for ingress routing from
+  # the customer network is "-can".
+  cmn:
+    gateway: istio-ingressgateway
+    enabled: false # default to false for vshasta, we override at deploytime for bare metal
+    type: NodePort
+    nodePorts:
+      http2: 30080
+      https: 30443
+  can:
+    gateway: istio-ingressgateway
+    enabled: false
+    type: LoadBalancer
+    annotations:
+      metallb.universe.tf/address-pool: customer-access
+      external-dns.alpha.kubernetes.io/hostname: shasta.local,auth.local
+    #spec:
+    #  loadBalancerIP: 1.2.3.4
+
+global:
+  istioNamespace: istio-system
+  controlPlaneSecurityEnabled: true
+  mtls:
+    enabled: true
+    auto: false
+  disablePolicyChecks: false
+  useMCP: false
+  authGateway: services/services-gateway
+
+  # These were copied from the install/kubernetes/operator/profiles/default.yaml in the shipped istio-1.5.4 distribution
+  # TODO(1.6): When upgrading to 1.6, remove all these along with removing charts/istio.
+  hub: docker.io/istio
+  tag: 1.5.4
+
+  istiod:
+    enabled: true
+  logging:
+    level: "default:info"
+  logAsJson: false
+  k8sIngress:
+    enabled: false
+    gatewayName: ingressgateway
+    enableHttps: false
+  pilotCertProvider: istiod
+  jwtPolicy: first-party-jwt  # FIXME: document
+  proxy:
+    image: proxyv2
+    clusterDomain: "cluster.local"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: "6"
+        memory: 8Gi
+    concurrency: 2
+    accessLogFile: "/dev/stdout"
+    accessLogFormat: ""
+    accessLogEncoding: TEXT
+    envoyAccessLogService:
+      enabled: false
+      host: # example: accesslog-service.istio-system
+      port: # example: 15000
+    logLevel: warning
+    componentLogLevel: "misc:error"
+    dnsRefreshRate: 300s
+    protocolDetectionTimeout: 100ms
+    privileged: false
+    enableCoreDump: false
+    statusPort: 15020
+    readinessInitialDelaySeconds: 1
+    readinessPeriodSeconds: 10
+    readinessFailureThreshold: 30
+    includeIPRanges: "*"
+    excludeIPRanges: ""
+    excludeOutboundPorts: ""
+    kubevirtInterfaces: ""
+    includeInboundPorts: "*"
+    excludeInboundPorts: ""
+    autoInject: enabled
+    envoyStatsd:
+      enabled: false
+      host: # example: statsd-svc.istio-system
+      port: # example: 9125
+    envoyMetricsService:
+      enabled: false
+      host: # example: metrics-service.istio-system
+      port: # example: 15000
+      tlsSettings:
+        mode: DISABLE # DISABLE, SIMPLE, MUTUAL, ISTIO_MUTUAL
+        clientCertificate: # example: /etc/istio/ms/cert-chain.pem
+        privateKey:        # example: /etc/istio/ms/key.pem
+        caCertificates:    # example: /etc/istio/ms/root-cert.pem
+        sni:               # example: ms.somedomain
+        subjectAltNames: []
+      tcpKeepalive:
+        probes: 3
+        time: 10s
+        interval: 10s
+    tracer: "zipkin"
+  proxy_init:
+    image: proxyv2
+    resources:
+      limits:
+        cpu: 100m
+        memory: 50Mi
+      requests:
+        cpu: 10m
+        memory: 10Mi
+  imagePullPolicy: IfNotPresent
+  certificates: []
+  operatorManageWebhooks: false
+  policyCheckFailOpen: false
+  enableTracing: true
+  tracer:
+    lightstep:
+      address: ""                # example: lightstep-satellite:443
+      accessToken: ""            # example: abcdefg1234567
+      secure: true               # example: true|false
+      cacertPath: ""             # example: /etc/lightstep/cacert.pem
+    zipkin:
+      address: ""
+    datadog:
+      address: "$(HOST_IP):8126"
+    stackdriver:
+      debug: false
+      maxNumberOfAttributes: 200
+      maxNumberOfAnnotations: 200
+      maxNumberOfMessageEvents: 200
+  imagePullSecrets: []
+  arch:
+    amd64: 2
+    s390x: 2
+    ppc64le: 2
+  oneNamespace: false
+  defaultNodeSelector: {}
+  configValidation: true
+  meshExpansion:
+    enabled: false
+    useILB: false
+  multiCluster:
+    enabled: false
+    clusterName: ""
+  omitSidecarInjectorConfigMap: false
+  network: ""
+  defaultResources:
+    requests:
+      cpu: 10m
+  defaultPodDisruptionBudget:
+    enabled: true
+  priorityClassName: ""
+  trustDomain: "cluster.local"
+  outboundTrafficPolicy:
+    mode: ALLOW_ANY
+  sds:
+    enabled: false
+    udsPath: ""
+    token:
+      aud: istio-ca
+  sts:
+    servicePort: 0
+  meshNetworks: {}
+  localityLbSetting:
+    enabled: true
+  enableHelmTest: false
+  mountMtlsCerts: false
+
+
+authn:
+  enabled: true
+  targets:
+  - istio-ingressgateway
+  - istio-ingressgateway-can
+  - istio-ingressgateway-cmn
+  origins:
+    shasta:
+      enabled: true
+      type: jwt
+      options:
+        trigger_rules:
+        # Enforce for all incoming endpoints except those excluded
+        - excluded_paths:
+          - prefix: /keycloak
+          - prefix: /apis/tokens
+          # Exemptions:
+          # - Capsules (Urika Manager)
+          - prefix: /capsules
+          # - PRS
+          - prefix: /repositories
+          # - Nexus repos
+          - prefix: /repository
+          # - Nexus container v2
+          - prefix: /v2
+          # - Nexus REST API
+          - prefix: /service/rest
+          # - VCS/Gitea
+          - prefix: /vcs
+      certs: "http://istio-ingressgateway/keycloak/realms/shasta/protocol/openid-connect/certs"
+      issuers:
+        # These are expected to be overriden via values.yaml customization.
+        # XXX `shasta` is work-around until the CLI can support a separate
+        # XXX URL for auth.
+        shasta: "https://shasta.local/keycloak/realms/shasta"
+        keycloak: "https://auth.local/keycloak/realms/shasta"
+        # The following are deprecated and will be removed in the future
+        gw_http: "http://api-gw-service-nmn.local/keycloak/realms/shasta"
+        gw_https: "https://api-gw-service-nmn.local/keycloak/realms/shasta"
+        internal_http: "http://keycloak:8080/keycloak/realms/shasta"
+        mgmt_http: "http://mgmt-plane-cmn.local/keycloak/realms/shasta"
+        mgmt_https: "https://mgmt-plane-cmn.local/keycloak/realms/shasta"
+
+prometheus:
+  enabled: true
+
+grafana:
+  enabled: true
+
+tracing:
+  enabled: true
+
+kiali:
+  enabled: true
+
+security:
+  enabled: true
+
+# These arent in the main istio values.yaml so you need to go deeper to set them
+istio:
+  sidecarInjectorWebhook:
+    rewriteAppHTTPProbe: true
+
+  galley:
+    enabled: false
+
+  gateways:
+    istio-ingressgateway:
+      enabled: true
+      type: LoadBalancer
+      autoscaleEnabled: true
+      autoscaleMin: 3
+      autoscaleMax: 6
+      resources:
+        requests:
+          cpu: 500m
+          memory: 2Gi 
+        limits:
+          cpu: "8"
+          memory: 16Gi
+      cpu:
+        targetAverageUtilization: 80
+      applicationPorts: "80"
+      podAntiAffinityTermLabelSelector:
+      - key: app
+        operator: In
+        values: istio-ingressgateway
+        topologyKey: "kubernetes.io/hostname"
+      ports:
+      - port: 80
+        name: http2
+      - port: 443
+        name: https
+      env:
+        ISTIO_META_IDLE_TIMEOUT: 10m
+      chart: gateways
+
+  prometheus:
+    enabled: true
+    hub: quay.io/prometheus
+    image: prometheus
+    tag: v2.15.2
+    retention: 4h
+    security:
+      enabled: false
+    externalAuthority: prometheus-istio.local
+
+  grafana:
+    enabled: true
+    image:
+      repository: grafana/grafana
+      tag: 6.5.2
+    security:
+      enabled: false
+    externalAuthority: grafana-istio.local
+
+  tracing:
+    enabled: true
+    provider: jaeger
+    jaeger:
+      memory:
+        max_traces: 50000
+    externalAuthority: jaeger-istio.local
+
+  kiali:
+    enabled: true
+    externalAuthority: kiali-istio.local
+    dashboard:
+      auth:
+        strategy: anonymous
+      grafanaURL: https://grafana-istio.local/
+      jaegerURL: https://jaeger-istio.local/
+# cray-istio has been setting custom_metrics_url per the kiali documentation
+# https://kiali.io/documentation/runtimes-monitoring/#_prometheus_configuration
+# but the istio/kiali chart sets url. This value also adds the custom_metrics_url
+# setting at the right indentation in the generated kiali ConfigMap. Maybe this
+# workaround can be removed in a future release.
+    prometheusAddr: |
+      http://prometheus-istio.local
+              custom_metrics_url: https://prometheus-istio.local/
+    createDemoSecret: false
+
+  pilot:
+    env:
+      USE_ISTIO_JWT_FILTER: "true"
+      PILOT_ENABLE_UNSAFE_REGEX: "true"
+
+ingressgatewayhmn:
+  gateways:
+    istio-ingressgateway-hmn:
+      enabled: true
+      labels:
+        app: istio-ingressgateway-hmn
+        istio: istio-ingressgateway-hmn
+      autoscaleEnabled: true
+      autoscaleMin: 3
+      autoscaleMax: 6
+      podAntiAffinityTermLabelSelector:
+      - key: app
+        operator: In
+        values: istio-ingressgateway-hmn
+        topologyKey: "kubernetes.io/hostname"
+      resources:
+        requests:
+          cpu: 300m
+          memory: 256Mi
+        limits:
+          cpu: "20"
+          memory: 1024Mi
+      cpu:
+        targetAverageUtilization: 80
+
+      type: LoadBalancer
+      ports:
+      - port: 80
+        targetPort: 80
+        name: http2
+
+      serviceAnnotations:
+        metallb.universe.tf/address-pool: hardware-management
+      loadBalancerIP: ""
+
+      meshExpansionPorts: []
+      secretVolumes:
+      - name: ingressgateway-certs
+        secretName: istio-ingressgateway-certs
+        mountPath: /etc/istio/ingressgateway-certs
+      - name: ingressgateway-ca-certs
+        secretName: istio-ingressgateway-ca-certs
+        mountPath: /etc/istio/ingressgateway-ca-certs
+
+      applicationPorts: "80"
+
+      env:
+        ISTIO_META_ROUTER_MODE: "sni-dnat"
+        ISTIO_META_IDLE_TIMEOUT: 10m

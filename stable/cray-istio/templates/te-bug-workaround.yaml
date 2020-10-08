@@ -1,0 +1,77 @@
+{{- /*
+Copyright 2020 Hewlett Packard Enterprise Development LP
+*/ -}}
+---
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: istio-te-bug-workaround
+  namespace: {{ .Release.Namespace }}
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: istio-te-bug-workaround
+rules:
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [list, get]
+  - apiGroups: [""]
+    resources: [pods/exec]
+    verbs: [create]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: istio-te-bug-workaround
+subjects:
+  - kind: ServiceAccount
+    name: istio-te-bug-workaround
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: istio-te-bug-workaround
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: istio-te-bug-workaround
+data:
+  modify_runtime.sh: |-
+    {{- .Files.Get "files/modify_runtime.sh" | nindent 4 }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: istio-te-bug-workaround
+  namespace: {{ .Release.Namespace }}
+spec:
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  schedule: "0/10 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: "istio-te-bug-workaround"
+          containers:
+          - name: istio-te-bug-workaround
+            #
+            # Using common image that can do kubectl stuff
+            #
+            image: "dtr.dev.cray.com/loftsman/docker-kubectl:0.2.0"
+            command:
+              - /bin/sh
+              - -c
+              - "/scripts/modify_runtime.sh"
+            volumeMounts:
+            - name: istio-te-bug-workaround
+              mountPath: /scripts
+          volumes:
+          - name: istio-te-bug-workaround
+            configMap:
+              name: istio-te-bug-workaround
+              defaultMode: 0744
+

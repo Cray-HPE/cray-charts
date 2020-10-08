@@ -1,0 +1,138 @@
+timeZone: Europe/Berlin
+
+benji:
+  image:
+    registry: bis.local:5000
+    repository: elementalnet/benji-k8s
+    tag: 0.8.0
+    pullPolicy: Always
+
+  resources: {}
+
+  strategy:
+    type: Recreate
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  configuration:
+    configurationVersion: '1'
+    databaseEngine: postgres://benji:secret@benji-k8s-postgresql:15432/benji
+    defaultStorage: rgw
+    storages:
+      - name: storage-1
+        storageId: 1
+        module: file
+        configuration:
+          path: /tmp/benji-data
+      - name: rgw
+        module: s3
+        storageId: 2
+        configuration:
+          awsAccessKeyIdFile: /etc/ceph_creds/access_key
+          awsSecretAccessKeyFile: /etc/ceph_creds/secret_key
+          endpointUrl: http://rgw.local:8080
+          useSsl: false
+          bucketName: benji-backups
+          disableEncodingType: false
+
+    ios:
+      - name: file
+        module: file
+      - name: kube
+        module: rbd
+
+  crontab:
+    - name: backup-backups-namespace
+      schedule: "*/5 * * * *"
+      command: [ "/bin/sh", "-c", "--", "benji-backup-pvc -n backups" ]
+    - name: enforce
+      schedule: "00 04 * * *"
+      command:
+        - benji-command
+        - enforce
+        - latest3,hours24,days30,months3
+        - 'labels["benji-backup.me/instance"] == "benji-k8s"'
+    - name: cleanup
+      schedule: "00 05 * * *"
+      command:
+        - benji-command
+        - cleanup
+
+  # Volumes and volume mounts can be used to mount Ceph configuration and credentials, backup sources or storages into
+  # the Benji container.
+  volumes:
+    - name: ceph-etc
+      configMap:
+        name: ceph-etc
+        defaultMode: 0444
+    - name: ceph-client-admin-keyring
+      secret:
+        secretName: ceph-client-admin-keyring
+        defaultMode: 0444
+    - name: benji-db
+      persistentVolumeClaim:
+        claimName: benji-db-claim
+    - name: benji-s3-creds
+      secret:
+        secretName: benji-backup-s3-credentials
+        defaultMode: 0444
+
+  volumeMounts:
+    - name: ceph-etc
+      mountPath: /etc/ceph/ceph.conf
+      subPath: ceph.conf
+      readOnly: true
+    - name: ceph-client-admin-keyring
+      mountPath: /etc/ceph/ceph.client.admin.keyring
+      subPath: ceph.client.admin.keyring
+      readonly: true
+    - name: benji-db
+      mountPath: /tmp
+    - name: benji-s3-creds
+      mountPath: /etc/ceph_creds
+      readOnly: true
+
+  persistentVolumeClaims:
+    - name: benji-db-claim
+      resources:
+        requests:
+          storage: 100Gi
+
+fsfreeze:
+  enabled: True
+
+  image:
+    registry: bis.local:5000
+    repository: docker.io/centos
+    tag: 7
+    pullPolicy: IfNotPresent
+
+  resources: {}
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+# Running the database backend on the same cluster could be dangerous!
+# Please consider the implications.
+postgresql:
+  enabled: true
+  postgresqlUsername: benji
+  postgresqlDatabase: benji
+  postgresqlPassword: secret
+  service:
+    port: 15432
+
+pushgateway:
+  image:
+    registry: bis.local:5000
+    repository: prom/pushgateway
+    tag: v0.8.0
+    pullPolicy: IfNotPresent
+  nameOverride: pushgateway

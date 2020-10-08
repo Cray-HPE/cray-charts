@@ -1,0 +1,32 @@
+{{- $root := . -}}
+{{- range .Values.persistentVolumeClaims -}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ include "cray-service.fullname" $root }}-{{ .name }}"
+  labels:
+    app.kubernetes.io/name: "{{ include "cray-service.name" $root }}-{{ .name }}"
+    {{- include "cray-service.common-labels" $root | nindent 4 }}
+  annotations:
+    {{- include "cray-service.common-annotations" $root | nindent 4 }}
+spec:
+  {{- if $root.Values.storageClass }}
+  storageClassName: "{{ $root.Values.storageClass }}"
+  {{ end -}}
+  {{- if .accessModes }}
+  accessModes:
+    {{- toYaml .accessModes | nindent 4 }}
+  {{- else }}
+  accessModes:
+    - ReadWriteOnce
+  {{- end }}
+  {{- if .resources }}
+  resources:
+    {{- toYaml .resources | nindent 4 }}
+  {{- else }}
+  resources:
+    requests:
+      storage: 1Gi
+  {{- end }}
+{{ end }}

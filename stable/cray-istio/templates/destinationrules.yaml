@@ -1,0 +1,26 @@
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: "DestinationRule"
+metadata:
+  name: "cluster-kafka-bootstrap-rule"
+  labels:
+    app.kubernetes.io/name: "cluster-kafka-bootstrap"
+spec:
+  host: "cluster-kafka-bootstrap.sma.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: "DestinationRule"
+metadata:
+  name: "cluster-kafka-brokers-rule"
+  namespace: services
+  labels:
+    app.kubernetes.io/name: "cluster-kafka-bootstrap"
+spec:
+  host: "cluster-kafka-brokers.sma.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+

@@ -1,0 +1,49 @@
+# Copyright 2020, Cray Inc.
+{{- $service := (index .Values "sonatype-nexus" "service") }}
+{{- if and (and .Values.istio.enabled .Values.istio.ingress.hosts) $service.enabled }}
+{{- $host := (default (printf "%v-service" (include "cray-nexus.name" .)) $service.name) }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ template "cray-nexus.name" . }}
+  labels:
+{{ include "cray-nexus.labels" . | indent 4 }}
+spec:
+  gateways:
+  - {{ .Values.istio.ingress.gateway | quote }}
+  hosts:
+  {{- range .Values.istio.ingress.hosts }}
+  {{- if .enabled }}
+  - {{ .authority | quote }}
+  {{- end }}
+  {{- end }}
+  http:
+  {{- range .Values.istio.ingress.hosts }}
+  {{- if .enabled }}
+  {{- $authority := .authority }}
+  {{- range .routes }}
+  - match:
+    {{- if .match }}
+    {{- range .match }}
+    - authority:
+        exact: {{ $authority | quote }}
+{{ toYaml . | indent 6 }}
+    {{- end }}
+    {{- else }}
+    - authority:
+        exact: {{ $authority | quote }}
+    {{- end }}
+    route:
+    - destination:
+        host: {{ $host | quote }}
+        port:
+          number: {{ default $service.port .port }}
+      {{- with .headers }}
+      headers:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}

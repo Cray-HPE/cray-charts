@@ -1,0 +1,13 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: cray-istio
+spec:
+  components:
+    pilot:
+      hub: {{ .Values.pilot.hub }}
+      tag: {{ .Values.pilot.tag }}
+  profile: default
+  hub: {{ .Values.hub }}
+  values:
+{{ .Values.istio | toYaml | indent 4 }}

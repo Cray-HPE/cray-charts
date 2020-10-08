@@ -1,0 +1,75 @@
+apiVersion: kafka.strimzi.io/v1alpha1
+kind: Kafka
+metadata:
+  name: {{ template "cray-shared-kafka.fullname" . }}
+  labels:
+    app: {{ template "cray-shared-kafka.name" . }}
+{{ include "cray-shared-kafka.labels" . | indent 4 }}
+spec:
+  kafka:
+    version: 2.2.1
+    replicas: {{ .Values.kafka.replicas }}
+    listeners:
+      plain: {}
+      #tls: {}
+    config:
+      offsets.topic.replication.factor: 3
+      transaction.state.log.replication.factor: 3
+      transaction.state.log.min.isr: 2
+      log.message.format.version: "2.1"
+    storage:
+      type: persistent-claim
+      size: 10Gi
+      #class: ceph-rbd-external
+      deleteClaim: false
+    metrics: {}
+    template:
+      pod:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+        securityContext:
+          runAsUser: 10001
+          fsGroup: 10001
+{{- with .Values.kafka.affinity }}
+        affinity:
+          {{ toYaml . | nindent 10 }}
+{{- end }}
+{{- with .Values.kafka.resources }}
+    resources:
+      {{ toYaml . | nindent 6 }}
+{{- end }}
+  zookeeper:
+    replicas: 3
+    storage:
+      type: persistent-claim
+      size: 100Gi
+      #class: ceph-rbd-external
+      deleteClaim: false
+    template:
+      pod:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+        securityContext:
+          runAsUser: 10001
+          fsGroup: 10001
+{{- with .Values.zookeeper.affinity }}
+        affinity:
+          {{ toYaml . | nindent 10 }}
+{{- end }}
+{{- with .Values.zookeeper.resources }}
+    resources:
+          {{ toYaml . | nindent 6 }}
+{{- end }}
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}
+    template:
+      pod:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+        securityContext:
+          runAsUser: 10001
+          fsGroup: 10001

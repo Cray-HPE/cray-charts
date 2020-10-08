@@ -1,0 +1,57 @@
+---
+# Default values for cray-vault-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+nameOverride: ""
+imagesHost: "sms.local:5000"
+
+serviceAccountName: "vault"
+
+allowedAuthNamespaces:
+  - namespace: services
+    serviceaccount: "*"
+    ttl: 72h
+
+vault:
+  ui: false
+  size: 3
+  image: "library/vault:1.4.2"
+  bankVaultsImage: "banzaicloud/bank-vaults:1.3.0"
+  statsdImage: "prom/statsd-exporter:v0.10.5"
+  antiaffinity:
+    enabled: true
+    topologyKey: "kubernetes.io/hostname"
+
+jwt:  # TODO - Test this out
+  enabled: false
+  config:
+    oidc_discovery_url: "https://api-gw-service-nmn.local/keycloak"
+    bound_issuer: "https://api-gw-service-nmn.local/keycloak/realms/shasta"
+    default_role: "default"
+  audience: "cray"
+
+etcd:
+  clusterSize: 3
+  version: "3.3.22"  #  NOTE: If you change this, ensure the version you are changing to is in the blob
+  image: "coreos/etcd"
+  busyboxImage: "library/busybox:1.28.0-glibc"
+  pvc:
+    accessMode: "ReadWriteOnce"
+    storageClass: ""
+    storage: 1Gi
+
+ingress:
+  enabled: true
+  gateway: "services-gateway.services.svc.cluster.local"
+  prefix: "/vault/"
+  uri: "/"
+  labels: {}
+  annotations: {}
+
+pki:
+  customCertificate:
+    # If you wish to bring in your own CA certificate then change enabled to
+    # true and create a secret with the CA key as ca.key and CA crt as ca.crt
+    # in the secret specified below
+    enabled: false
+    # secret: vault-pki-ca

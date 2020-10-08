@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $op := index .Values "vault-operator" }}{{ $op.watchNamespace}}
+  labels:
+    istio-injection: enabled

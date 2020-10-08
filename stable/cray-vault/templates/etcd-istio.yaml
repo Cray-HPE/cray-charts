@@ -1,0 +1,24 @@
+---
+apiVersion: "networking.istio.io/v1alpha3"
+kind: "DestinationRule"
+metadata:
+  name: "{{ include "cray-vault.etcdName" . }}-client-rule"
+  labels:
+    app.kubernetes.io/name: {{ include "cray-vault.etcdName" . }}
+spec:
+  host: "{{ include "cray-vault.etcdName" . }}-client"
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---
+apiVersion: "networking.istio.io/v1alpha3"
+kind: "DestinationRule"
+metadata:
+  name: "{{ include "cray-vault.etcdName" . }}-rule"
+  labels:
+    app.kubernetes.io/name: {{ include "cray-vault.etcdName" . }}
+spec:
+  host: "{{ include "cray-vault.etcdName" . }}"
+  trafficPolicy:
+    tls:
+      mode: DISABLE

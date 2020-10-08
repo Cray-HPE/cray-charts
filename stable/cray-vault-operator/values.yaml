@@ -1,0 +1,21 @@
+# Default values for cray-vault-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+vault-operator:
+  image:
+    repository: sms.local:5000/banzaicloud/vault-operator
+    tag: 1.3.0
+
+  watchNamespace: "vault"
+
+  etcd-operator: # This always needs to be false
+    enabled: false
+
+  resources:
+    limits:
+      cpu: "2"
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi

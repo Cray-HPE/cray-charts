@@ -1,0 +1,55 @@
+# Full available options can be seen here: https://github.com/zalando/postgres-operator/blob/c1d108a8321190559e4280b440ffe448339f656f/charts/postgres-operator/values.yaml
+
+postgres-operator:
+  image:
+    registry: registry.opensource.zalan.do
+    repository: cray/postgres-operator
+    tag: 1.5.2
+    pullPolicy: "IfNotPresent"
+
+  podAnnotations:
+    sidecar.istio.io/inject: "true"
+
+  podLabels: {}
+
+  # general configuration parameters
+  configGeneral:
+    docker_image: registry.opensource.zalan.do/acid/spilo-12:1.6-p3
+    resync_period: 5m
+
+  # parameters describing Postgres users
+  configUsers:
+    super_username: postgres
+
+  configKubernetes:
+    watched_namespace: "*"
+    secret_name_template: '{username}.{cluster}.credentials'
+    spilo_privileged: "false"
+    spilo_chmod_lifecycle: "true"
+    pod_management_policy: "ordered_ready"
+    enable_pod_antiaffinity: "true"
+    pod_antiaffinity_topology_key: "kubernetes.io/hostname"
+    pod_environment_configmap: "postgres-nodes-pod-env"
+    spilo_fsgroup: "103"
+    update_strategy_type: "RollingUpdate"
+
+  # configure behavior of load balancers
+  configLoadBalancer:
+    enable_master_load_balancer: "false"
+    enable_replica_load_balancer: "false"
+
+  # automate creation of human users with teams API service
+  configTeamsApi:
+    enable_teams_api: "false"
+
+  # Affinity for pod assignment
+  # Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
+
+  # Tolerations for pod assignment
+  # Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Node labels for pod assignment
+  # Ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}

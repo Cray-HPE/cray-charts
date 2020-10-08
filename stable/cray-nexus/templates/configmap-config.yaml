@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # Note that this name is intentionally static to align with the settings
+  # passed to the sonatype-nexus subchart.
+  name: nexus-config
+  labels:
+{{ include "cray-nexus.labels" . | indent 4 }}
+data:
+  nexus.properties: |-
+    nexus.onboarding.enabled=false
+    nexus.scripts.allowCreation=true
+    nexus.security.randompassword=false

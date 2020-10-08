@@ -1,0 +1,5 @@
+---
+dependencies:
+  - name: etcd-operator
+    version: 0.10.3
+    repository: "@stable"

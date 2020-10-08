@@ -1,0 +1,15 @@
+{{- if and .Values.namespace.istioInjection (eq .Values.namespace.istioInjection "enabled") }}
+apiVersion: authentication.istio.io/v1alpha1
+kind: Policy
+metadata:
+   name: cray-certmanager-cert-manager-webhook
+   namespace: cert-manager
+   labels:
+      app: security
+spec:
+  peers:
+  - mtls:
+      mode: PERMISSIVE
+  targets:
+  - name: cray-certmanager-cert-manager-webhook
+{{- end}}

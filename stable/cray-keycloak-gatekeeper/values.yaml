@@ -1,0 +1,29 @@
+# Default values for cray-keycloak-gatekeeper.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: quay.io/keycloak/keycloak-gatekeeper
+  tag: 9.0.0
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+# The Keycloak client secret includes the client ID, client secret, and
+# discovery URL. It is configured as part of keycloak_deploy role.
+keycloakClientSecret: keycloak-gatekeeper-client
+
+# The URL to which traffic is forwarded after authentication (and
+# authorization). This is expected to be the Istio ingress gateway.
+upstreamUrl: "https://istio-ingressgateway.istio-system.svc.cluster.local/"
+
+# The hostnames that keycloak-gatekeeper will proxy.
+hosts: []
+
+# Additional /etc/hosts configuration for keycloak-gatekeeper pod(s).
+# Necessary on systems where the discovery URL in keycloakClientSecret is not
+# resolvable from the keycloak-gatekeeper pod (e.g., groot-ncn-w001).
+hostAliases: []

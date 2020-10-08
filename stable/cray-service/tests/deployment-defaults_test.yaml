@@ -1,0 +1,130 @@
+---
+suite: deployment defaults
+templates:
+  - deployment.yaml
+  - statefulset.yaml
+  - daemonset.yaml
+  - service.yaml
+  - etcd-cluster.yaml
+  - ingress.yaml
+  - pvcs.yaml
+tests:
+  - it: should default to deployment
+    asserts:
+      - template: deployment.yaml
+        isKind:
+          of: Deployment
+  - it: should render the correct resources
+    asserts:
+      - template: deployment.yaml
+        hasDocuments:
+          count: 1
+      - template: service.yaml
+        hasDocuments:
+          count: 1
+      - template: etcd-cluster.yaml
+        hasDocuments:
+          count: 0
+      - template: ingress.yaml
+        hasDocuments:
+          count: 0
+      - template: statefulset.yaml
+        hasDocuments:
+          count: 0
+      - template: daemonset.yaml
+        hasDocuments:
+          count: 0
+      - template: pvcs.yaml
+        hasDocuments:
+          count: 0
+  - it: should include a single container port named http at port 80
+    asserts:
+      - template: deployment.yaml
+        equal:
+          path: spec.template.spec.containers[0].ports[0].name
+          value: http
+      - template: deployment.yaml
+        equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 80
+  - it: should not include any init containers
+    asserts:
+      - template: deployment.yaml
+        isEmpty:
+          path: spec.template.spec.initContainers
+  - it: should not include probes
+    asserts:
+      - template: deployment.yaml
+        isNotEmpty:
+          path: spec.template.spec.containers[0].livenessProbe
+      - template: deployment.yaml
+        equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /
+      - template: deployment.yaml
+        equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 80
+      - template: deployment.yaml
+        isNotEmpty:
+          path: spec.template.spec.containers[0].readinessProbe
+      - template: deployment.yaml
+        equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /
+      - template: deployment.yaml
+        equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: 80
+  - it: should have empty volume and volumeMounts definitions
+    asserts:
+      - template: deployment.yaml
+        isEmpty:
+          path: spec.template.spec.volumes
+      - template: deployment.yaml
+        isEmpty:
+          path: spec.template.spec.containers[0].volumeMounts
+  - it: should not include resources
+    asserts:
+      - template: deployment.yaml
+        isEmpty:
+          path: spec.template.spec.containers[0].resources
+  - it: should not include nodeSelector
+    asserts:
+      - template: deployment.yaml
+        isEmpty:
+          path: spec.template.spec.nodeSelector
+  - it: should not include affinity
+    asserts:
+      - template: deployment.yaml
+        isEmpty:
+          path: spec.template.spec.affinity
+  - it: should not include tolerations
+    asserts:
+      - template: deployment.yaml
+        isEmpty:
+          path: spec.template.spec.tolerations
+  - it: should not include imagePullSecrets
+    asserts:
+      - template: deployment.yaml
+        isEmpty:
+          path: spec.template.spec.imagePullSecrets
+  - it: should equal expected default container image values
+    asserts:
+      - template: deployment.yaml
+        equal:
+          path: spec.template.spec.containers[0].image
+          value: "dtr.dev.cray.com/:latest"
+        equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: "IfNotPresent"
+  - it: pod annotations should not be empty
+    asserts:
+      - template: deployment.yaml
+        isNotEmpty:
+          path: spec.template.metadata.annotations
+  - it: should not include any strategy by default
+    asserts:
+      - template: deployment.yaml
+        isEmpty:
+          path: spec.strategy

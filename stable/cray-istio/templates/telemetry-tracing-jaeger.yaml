@@ -1,0 +1,45 @@
+# See https://istio.io/docs/tasks/telemetry/gateways/
+{{- if .Values.istio.tracing.enabled }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: tracing
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: tracing
+    chart: tracing
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  gateways:
+  - {{ .Values.global.authGateway }}
+  hosts:
+  - {{ .Values.istio.tracing.externalAuthority }}
+  http:
+  - match:
+    - authority:
+        exact: {{ .Values.istio.tracing.externalAuthority }}
+    route:
+    - destination:
+        host: tracing
+        port:
+          number: 80
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: tracing
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: tracing 
+    chart: tracing
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  host: tracing
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---
+{{- end }}

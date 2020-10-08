@@ -1,0 +1,13 @@
+# Default values for cray-keycloak.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+istio:
+  gateway: services-gateway
+
+keycloak:
+  keycloak:
+    securityContext:
+      runAsUser: 0
+      runAsGroup: 0
+      runAsNonRoot: false
