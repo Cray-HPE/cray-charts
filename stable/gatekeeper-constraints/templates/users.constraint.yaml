@@ -1,0 +1,50 @@
+{{- $profile := index .Values "constraints" "users" "profile" -}}
+{{- if index .Values "constraints" "users" "variables" $profile "enabled" -}}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPAllowedUsers
+metadata:
+  name: psp-pods-allowed-user-ranges
+spec:
+  enforcementAction: {{ index .Values "constraints" "users" "variables" $profile "enforcementAction" }}
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    {{- if index .Values "excludedNamespaces"}}
+    excludedNamespaces:
+    {{- range index .Values "excludedNamespaces"}}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    # namespaces:
+    #   - "production"  parameters:
+  parameters:
+    runAsUser:
+      rule: {{ index .Values "constraints" "users" "variables" $profile "runAsUser" "rule" }}
+      ranges:
+      {{- range index .Values "constraints" "users" "variables" $profile "runAsUser" "ranges"}}
+      - min: {{ .min }}
+        max: {{ .max }}
+      {{- end }}
+    runAsGroup:
+      rule: {{ index .Values "constraints" "users" "variables" $profile "runAsGroup" "rule" }}
+      ranges:
+      {{- range index .Values "constraints" "users" "variables" $profile "runAsGroup" "ranges"}}
+      - min: {{ .min }}
+        max: {{ .max }}
+      {{- end }}
+    supplementalGroups:
+      rule: {{ index .Values "constraints" "users" "variables" $profile "supplementalGroups" "rule" }}
+      ranges:
+      {{- range index .Values "constraints" "users" "variables" $profile "supplementalGroups" "ranges"}}
+      - min: {{ .min }}
+        max: {{ .max }}
+      {{- end }}
+    fsGroup:
+      rule: {{ index .Values "constraints" "users" "variables" $profile "fsGroup" "rule" }}
+      ranges:
+      {{- range index .Values "constraints" "users" "variables" $profile "fsGroup"  "ranges"}}
+      - min: {{ .min }}
+        max: {{ .max }}
+      {{- end }}
+{{- end -}}

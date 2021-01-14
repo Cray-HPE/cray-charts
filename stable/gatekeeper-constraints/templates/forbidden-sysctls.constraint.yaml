@@ -1,0 +1,25 @@
+{{- $profile := index .Values "constraints" "forbidden-sysctls" "profile" -}}
+{{- if index .Values "constraints" "forbidden-sysctls" "variables" $profile "enabled" -}}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPForbiddenSysctls
+metadata:
+  name: psp-forbidden-sysctls
+spec:
+  enforcementAction: {{ index .Values "constraints" "forbidden-sysctls" "variables" $profile "enforcementAction" }}
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    {{- if index .Values "excludedNamespaces"}}
+    excludedNamespaces:
+    {{- range index .Values "excludedNamespaces"}}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    # namespaces:
+    #   - "production"  parameters:  parameters:
+    forbiddenSysctls:
+    {{- range index .Values "constraints" "forbidden-sysctls" "variables" $profile "forbiddenSysctls"}}
+    - "{{ . }}"
+    {{- end -}}
+{{- end -}}

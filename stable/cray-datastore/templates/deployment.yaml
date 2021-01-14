@@ -1,0 +1,43 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ include "cray-datastore.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "cray-datastore.name" . }}
+    helm.sh/chart: {{ include "cray-datastore.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "cray-datastore.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "cray-datastore.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: cray-zookeeper
+          image: "{{ include "cray-datastore.image-prefix" . }}{{ .Values.images.zookeeper.repository }}:{{ .Values.images.zookeeper.tag }}"
+          ports:
+            - name: http-zookeeper
+              containerPort: 2181
+        - name: cray-datastore
+          image: "{{ include "cray-datastore.image-prefix" . }}{{ .Values.images.datastore.repository }}:{{ .Values.images.datastore.tag }}"
+          env:
+            - name: KV_BACKEND
+              value: zookeeper
+            - name: ZOOKEEPER_HOSTS
+              value: "localhost:2181"
+          ports:
+            - name: http
+              containerPort: 80
+          lifecycle:
+            preStop:
+              exec:
+                # SIGTERM triggers a quick, ungracefully exit; gracefully terminate instead
+                command: ["/usr/sbin/nginx","-s","quit"]

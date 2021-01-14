@@ -1,0 +1,7 @@
+#
+# Copyright 2020 Hewlett Packard Enterprise Development LP
+#
+apiVersion: v1
+version: 0.1.2
+name: cray-metrics-server
+appVersion: 0.1.0

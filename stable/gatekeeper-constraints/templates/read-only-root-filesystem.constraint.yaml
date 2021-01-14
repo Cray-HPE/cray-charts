@@ -1,0 +1,21 @@
+{{- $profile := index .Values "constraints" "read-only-root-filesystem" "profile" -}}
+{{- if index .Values "constraints" "read-only-root-filesystem" "variables" $profile "enabled" -}}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPReadOnlyRootFilesystem
+metadata:
+  name: psp-readonlyrootfilesystem
+spec:
+  enforcementAction: {{ index .Values "constraints" "read-only-root-filesystem" "variables" $profile "enforcementAction" }}
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    {{- if index .Values "excludedNamespaces"}}
+    excludedNamespaces:
+    {{- range index .Values "excludedNamespaces"}}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    # namespaces:
+    #   - "production"  parameters:
+{{- end -}}

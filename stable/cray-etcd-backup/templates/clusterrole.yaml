@@ -1,0 +1,21 @@
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: etcd-backup-restore
+rules:
+  - apiGroups: [""]
+    resources: [services]
+    verbs: [list, get]
+  - apiGroups: ["etcd.database.coreos.com"]
+    resources: [etcdclusters]
+    verbs: [list, get]
+  - apiGroups: ["etcd.database.coreos.com"]
+    resources: [etcdbackups]
+    verbs: [get, create, patch]
+  - apiGroups: ["etcd.database.coreos.com"]
+    resources: [etcdrestores]
+    verbs: [get, create]
+  - apiGroups: [""]
+    resources: [secrets]
+    verbs: [get, create]

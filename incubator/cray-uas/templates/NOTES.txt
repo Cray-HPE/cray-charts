@@ -1,0 +1,3 @@
+UAS services in the cluster at:
+
+mgr: http://{{ include "cray-uas.name" . }}-mgr:{{ .Values.services.mgr.port }}

@@ -1,0 +1,83 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ include "cray-uas.name" . }}-mgr
+  labels:
+    app.kubernetes.io/name: {{ include "cray-uas.name" . }}-mgr
+    helm.sh/chart: {{ include "cray-uas.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCounts.mgr }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "cray-uas.name" . }}-mgr
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "cray-uas.name" . }}-mgr
+        api-gateway: upstream
+        app.kubernetes.io/name: {{ include "cray-uas.name" . }}-mgr
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ include "cray-uas.name" . }}-mgr
+      volumes:
+        - name: ca-vol
+          configMap:
+            name: cray-configmap-ca-public-key # TODO: where is this configmap defined?
+        - name: {{ include "cray-uas.name" . }}-mgr-configmap
+          configMap:
+            name: {{ include "cray-uas.name" . }}-mgr-configmap
+        - name: admin-client-auth
+          secret:
+            secretName: {{ .Values.kong.adminClientAuthSecretName }}
+      containers:
+        - name: {{ include "cray-uas.name" . }}-mgr
+          image: "{{ .Values.images.mgr.repository }}:{{ .Values.images.mgr.tag }}"
+          imagePullPolicy: {{ .Values.images.mgr.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.containers.mgr.port }}
+          volumeMounts:
+            - name: {{ include "cray-uas.name" . }}-mgr-configmap
+              mountPath: /etc/uas
+          resources:
+{{ toYaml .Values.resources.mgr | indent 12 }}
+        - name: {{ include "cray-uas.name" . }}-mgr-register-api-gateway
+          image: '{{ index .Values "images" "register-api-gateway" "repository" }}:{{ index .Values "images" "register-api-gateway" "tag" }}'
+          imagePullPolicy: {{ index .Values "images" "register-api-gateway" "pullPolicy" }}
+          env:
+            - name: API_GW_ADMIN_URL
+              value: "{{ .Values.kong.internalUrl }}"
+            - name: CA_CERT
+              value: /mnt/ca-vol/certificate_authority.crt
+            - name: SERVICE_NAME
+              value: {{ include "cray-uas.name" . }}-mgr
+            - name: UPSTREAM_URL
+              value: "http://{{ include "cray-uas.name" . }}-mgr:{{ .Values.containers.mgr.port }}/"
+            - name: ROUTE_PATH
+              value: /apis/uas-mgr
+            - name: HTTPS_REQUIRED
+              value: '{{ (index .Values "containers" "register-api-gateway" "httpsRequired") | default "True" }}'  # SHASTACMS-1587: Make https-only once clients/tests are updated to https
+            - name: OAUTH_CONFIG_DIR
+              value: '/etc/admin-client-auth'
+            - name: AUTHENTICATION_REQUIRED
+              value: '{{ .Values.kong.authRequired | default "True" }}'
+          volumeMounts:
+            - name: ca-vol
+              mountPath: /mnt/ca-vol
+            - name: admin-client-auth
+              mountPath: '/etc/admin-client-auth'
+              readOnly: true
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinities.mgr }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

@@ -1,0 +1,12 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8spsphostnamespace
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPSPHostNamespace
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: {{ (.Files.Get "regos/host-filesystem/host-filesystem.src.rego") | toYaml | indent 6}}

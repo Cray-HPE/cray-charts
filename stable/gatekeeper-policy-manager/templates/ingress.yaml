@@ -1,0 +1,39 @@
+{{- /*
+(C) Copyright 2020 Hewlett Packard Enterprise Development LP.
+*/}}
+
+{{- if (index .Values "gatekeeper-policy-manager" "ingress" "enabled") }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: opa-gatekeeper-policy-manager
+  labels:
+    app: gatekeeper-policy-manager
+spec:
+  gateways:
+  - {{ .Values.global.authGateway }}
+  hosts:
+  - {{ (index .Values "gatekeeper-policy-manager" "externalAuthority") }}
+  http:
+  - match:
+    - authority:
+        exact: {{ (index .Values "gatekeeper-policy-manager" "externalAuthority") }}
+    route:
+    - destination:
+        host: gatekeeper-policy-manager
+        port:
+          number: 8080
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: opa-gatekeeper-policy-manager
+  labels:
+    app: gatekeeper-policy-manager
+spec:
+  host: opa-gatekeeper-policy-manager
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+{{- end }}

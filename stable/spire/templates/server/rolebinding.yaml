@@ -1,0 +1,14 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "spire.fullname" . }}-server
+  labels:
+    app.kubernetes.io/name: {{ template "spire.name" . }}
+    {{- include "spire.common-labels" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "spire.fullname" . }}-server
+roleRef:
+  kind: Role
+  name: {{ include "spire.fullname" . }}-server
+  apiGroup: rbac.authorization.k8s.io

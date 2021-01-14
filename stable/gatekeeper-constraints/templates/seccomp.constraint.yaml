@@ -1,0 +1,24 @@
+{{- $profile := index .Values "constraints" "seccomp" "profile" -}}
+{{- if index .Values "constraints" "seccomp" "variables" $profile "enabled" -}}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPSeccomp
+metadata:
+  name: psp-seccomp
+spec:
+  enforcementAction: {{ index .Values "constraints" "seccomp" "variables" $profile "enforcementAction" }}
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    {{- if index .Values "excludedNamespaces"}}
+    excludedNamespaces:
+    {{- range index .Values "excludedNamespaces"}}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    # namespaces:
+    #   - "production"  parameters:
+  parameters:
+    allowedProfiles:
+    - runtime/default
+{{- end -}}

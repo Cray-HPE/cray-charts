@@ -1,0 +1,34 @@
+{{- $profile := index .Values "constraints" "capabilities" "profile" -}}
+{{- if index .Values "constraints" "capabilities" "variables" $profile "enabled" -}}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPCapabilities
+metadata:
+  name: psp-capabilities
+spec:
+  enforcementAction: {{ index .Values "constraints" "capabilities" "variables" $profile "enforcementAction" }}
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    {{- if index .Values "excludedNamespaces"}}
+    excludedNamespaces:
+    {{- range index .Values "excludedNamespaces"}}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    # namespaces:
+    #   - "production"
+  parameters:
+    {{- if index .Values "constraints" "capabilities" "variables" $profile "allowedCapabilities"}}
+    allowedCapabilities:
+    {{- range index .Values "constraints" "capabilities" "variables" $profile "allowedCapabilities"}}
+    - "{{ . }}"
+    {{- end -}}
+    {{ end }}
+    {{- if index .Values "constraints" "capabilities" "variables" $profile "requiredDropCapabilities"}}
+    requiredDropCapabilities:
+    {{- range index .Values "constraints" "capabilities" "variables" $profile "requiredDropCapabilities"}}
+    - "{{ . }}"
+    {{- end }}
+    {{ end}}
+{{- end -}}

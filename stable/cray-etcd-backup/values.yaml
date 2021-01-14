@@ -1,0 +1,15 @@
+# Default values for cray-etcd-backup
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+crayEtcdBackup:
+  imageRegistry: "bis.local:5000"
+  kubectlImageVersion: "0.2.0-20200421212755_170bb37"
+  boto3ImageVersion: "1.8"
+  periodicCronSchedule: "0 * * * *"
+  replicas: 2 # Two pods so we are resillient to one worker dropping
+  strategy:
+    type: Recreate

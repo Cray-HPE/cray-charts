@@ -1,0 +1,41 @@
+{{- range $suffix, $spec := .Values.extraIngressServices -}}
+{{- if $spec.enabled -}}
+{{- $gatewaySpec := index $.Values.istio.gateways $spec.gateway -}}
+{{- if $gatewaySpec.enabled }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $spec.gateway }}-{{ $suffix }}
+  namespace: {{ $gatewaySpec.namespace | default $.Release.Namespace }}
+  {{- with $spec.annotations }}
+  annotations: {{ toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    chart: gateways
+    heritage: {{ $.Release.Service }}
+    release: {{ $.Release.Name }}
+    {{- with $gatewaySpec.labels }}{{ toYaml . | nindent 4 }}{{- end }}
+    {{- with $spec.extraServiceLabels }}{{ toYaml . | nindent 4 }}{{- end }}
+spec:
+  type: {{ $spec.type | default "ClusterIP" }}
+  selector:
+    {{- with $gatewaySpec.labels }}{{ toYaml . | nindent 4 }}{{- end }}
+  ports:
+    {{- range $key, $val := $gatewaySpec.ports }}
+    - {{ range $pkey, $pval := $val -}}
+      {{ $pkey}}: {{ $pval }}
+      {{- if eq $pkey "name" }}
+      {{- range $tkey, $tval := $spec.nodePorts}}
+      {{- if and (eq $spec.type "NodePort") (eq $tkey $pval) }}
+      nodePort: {{ index $spec.nodePorts $pval }}
+      {{- end }}
+      {{- end }}
+      {{ end }}
+      {{- end }}
+    {{- end }}
+  {{- with $spec.spec }}{{ toYaml . | nindent 2 }}{{ end }}
+{{- end -}}{{/* if $gateway.enabled */}}
+{{- end -}}{{/* if $spec.enabled */}}
+{{- end -}}{{/* range */}}

@@ -1,0 +1,21 @@
+{{- $profile := index .Values "constraints" "allow-privilege-escalation-container" "profile" -}}
+{{- if index .Values "constraints" "allow-privilege-escalation-container" "variables" $profile "enabled" -}}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPAllowPrivilegeEscalationContainer
+metadata:
+  name: psp-allow-privilege-escalation-container
+spec:
+  enforcementAction: {{ index .Values "constraints" "allow-privilege-escalation-container" "variables" $profile "enforcementAction" }}
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    {{- if index .Values "excludedNamespaces"}}
+    excludedNamespaces:
+    {{- range index .Values "excludedNamespaces"}}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    # namespaces:
+    # - "production"
+{{- end -}}

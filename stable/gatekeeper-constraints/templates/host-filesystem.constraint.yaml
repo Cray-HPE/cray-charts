@@ -1,0 +1,27 @@
+{{- $profile := index .Values "constraints" "host-filesystem" "profile" -}}
+{{- if index .Values "constraints" "host-filesystem" "variables" $profile "enabled" -}}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPHostFilesystem
+metadata:
+  name: psp-host-filesystem
+spec:
+  enforcementAction: {{ index .Values "constraints" "host-filesystem" "variables" $profile "enforcementAction" }}
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    {{- if index .Values "excludedNamespaces"}}
+    excludedNamespaces:
+    {{- range index .Values "excludedNamespaces"}}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    # namespaces:
+    #   - "production"  parameters:
+  parameters:
+    allowedHostPaths:
+    {{- range index .Values "constraints" "host-filesystem" "variables" $profile "allowedHostPaths" }}
+    - pathPrefix: {{ .pathPrefix }}
+      readOnly: {{ .readOnly }}
+    {{- end }}
+{{- end -}}

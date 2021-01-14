@@ -1,0 +1,19 @@
+{{- /*
+Copyright 2020 Hewlett Packard Enterprise Development LP
+*/ -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cray-precache-images
+data:
+  images_to_cache: |-
+    {{- range $image := .Values.cacheImages }}
+    {{- $image | nindent 4 }}
+    {{- end }}
+
+  cache_refresh_seconds: |
+    {{ .Values.cacheRefreshSeconds }}
+
+  cache_images.sh: |-
+    {{- .Files.Get "files/cache_images.sh" | nindent 4 }}

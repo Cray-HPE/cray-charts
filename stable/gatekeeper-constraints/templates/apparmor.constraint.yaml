@@ -1,0 +1,22 @@
+{{- $profile := index .Values "constraints" "apparmor" "profile" -}}
+{{- if index .Values "constraints" "apparmor" "variables" $profile "enabled" -}}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPAppArmor
+metadata:
+  name: psp-apparmor
+spec:
+  enforcementAction: {{ index .Values "constraints" "apparmor" "variables" $profile "enforcementAction" }}
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    {{- if index .Values "excludedNamespaces"}}
+    excludedNamespaces:
+    {{- range index .Values "excludedNamespaces"}}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+  parameters:
+    allowedProfiles:
+    - runtime/default
+{{- end -}}

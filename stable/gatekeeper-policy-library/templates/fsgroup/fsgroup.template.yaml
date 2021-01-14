@@ -1,0 +1,27 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8spspfsgroup
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPSPFSGroup
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            rule:
+              type: string
+            ranges:
+              type: array
+              items:
+                type: object
+                properties:
+                  min:
+                    type: integer
+                  max:
+                    type: integer
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: {{ (.Files.Get "regos/fsgroup/fsgroup.src.rego") | toYaml | indent 6}}

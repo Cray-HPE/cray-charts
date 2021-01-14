@@ -1,0 +1,11 @@
+apiVersion: v1
+appVersion: 0.14.1
+description: cert-manager per-namespace issuer setup
+keywords:
+- cert-manager
+icon: https://github.com/jetstack/cert-manager/raw/master/logo/logo.png
+sources:
+- https://github.com/jetstack/cert-manager
+name: cray-certmanager-issuers
+home: "cloud/cray-charts"
+version: 0.4.0

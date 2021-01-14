@@ -1,0 +1,42 @@
+# Default values for cray-keycloak-gatekeeper.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: quay.io/keycloak/keycloak-gatekeeper
+  tag: 9.0.0
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+# The Keycloak client secret includes the client ID, client secret, and
+# discovery URL. It is configured as part of keycloak_deploy role.
+keycloakClientSecret: keycloak-gatekeeper-client
+
+# The URL to which traffic is forwarded after authentication (and
+# authorization). This is expected to be the Istio ingress gateway.
+upstreamUrl: "https://istio-ingressgateway.istio-system.svc.cluster.local/"
+
+# The hostnames that keycloak-gatekeeper will proxy. Hosts must be 
+# overridden with valid values, a single value here is used to ensure
+# the chart builds successfully (e.g., the certificate chart requires
+# at least one host to use as commonName + first SAN)
+hosts:
+- replace_me
+
+# Additional /etc/hosts configuration for keycloak-gatekeeper pod(s).
+# Necessary on systems where the discovery URL in keycloakClientSecret is not
+# resolvable from the keycloak-gatekeeper pod (e.g., groot-ncn-w001).
+hostAliases: []
+
+# Certificate secretName
+certificateSecretName: "keycloak-gatekeeper-certs"
+
+# Passed as the value to the upstream-response-header-timeout option, "the timeout placed on the response header for upstream"`
+upstreamResponseHeaderTimeout: "5m"
+
+# Passed as the value to the server-write-timeout option, "the server write timeout on the http server"
+serverWriteTimeout: "5m"

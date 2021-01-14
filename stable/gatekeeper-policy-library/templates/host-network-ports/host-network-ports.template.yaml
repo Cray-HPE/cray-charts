@@ -1,0 +1,22 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8spsphostnetworkingports
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPSPHostNetworkingPorts
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            hostNetwork:
+              type: boolean
+            min:
+              type: integer
+            max:
+              type: integer
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: {{ (.Files.Get "regos/host-network-ports/host-network-ports.src.rego") | toYaml | indent 6}}

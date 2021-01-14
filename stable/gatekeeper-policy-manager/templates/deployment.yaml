@@ -1,0 +1,42 @@
+{{- /*
+(C) Copyright 2020 Hewlett Packard Enterprise Development LP.
+*/}} 
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gatekeeper-policy-manager.name" . }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "gatekeeper-policy-manager.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "gatekeeper-policy-manager.name" . }}
+    spec:
+      serviceAccountName: gatekeeper-policy-manager
+      containers:
+      - name: {{ include "gatekeeper-policy-manager.name" . }}
+        image: '{{ include "gatekeeper-policy-manager.image-prefix" . }}{{ .Values.image.repository }}:{{ .Values.image.tag }}'
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+        readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+        ports:
+        - containerPort: 8080
+          name: http
+        securityContext:
+          privileged: false

@@ -1,0 +1,53 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:ceph-csi-rbd-role
+rules:
+- apiGroups:
+  - "apps"
+  resources:
+  - pods
+  - nodes
+  - nodes/stats
+  - namespaces
+  - configmaps
+  - replicasets
+  - storageclasses
+  verbs:
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - "storage.k8s.io"
+  resources:
+  - storageclasses
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:ceph-csi-rbd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:ceph-csi-rbd-role
+subjects:
+- kind: ServiceAccount
+  name: ceph-csi-sa
+  namespace: default
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ceph-csi-sa
+  namespace: default
+  labels:
+    app: ceph-csi
+

@@ -1,0 +1,26 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+  name: cray-istio
+spec:
+  profile: minimal
+  hub: {{ .Values.hub }}
+  tag: {{ .Values.tag }}
+  components:
+    pilot:
+      enabled: true
+      hub: {{ .Values.pilot.hub }}
+      tag: {{ .Values.pilot.tag }}
+  addonComponents:
+    prometheus:
+      enabled: true
+      k8s:
+        resources:
+{{ toYaml .Values.istio.prometheus.resources | indent 10 }}
+    kiali:
+      enabled: true
+    tracing:
+      enabled: true
+    grafana:
+      enabled: true

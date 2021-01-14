@@ -1,0 +1,27 @@
+# Default values for cray-vault-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+kubectl:
+  image:
+    repository: dtr.dev.cray.com/loftsman/loftsman
+    tag: 0.5.1
+
+vault-operator:
+  image:
+    bankVaultsRepository: banzaicloud/bank-vaults
+    repository: banzaicloud/vault-operator
+    tag: 1.8.0
+
+  watchNamespace: "vault"
+
+  etcd-operator: # This always needs to be false
+    enabled: false
+
+  resources:
+    limits:
+      cpu: "2"
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi

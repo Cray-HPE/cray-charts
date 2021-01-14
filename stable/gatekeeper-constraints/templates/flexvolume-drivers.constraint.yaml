@@ -1,0 +1,26 @@
+{{- $profile := index .Values "constraints" "flexvolume-drivers" "profile" -}}
+{{- if index .Values "constraints" "flexvolume-drivers" "variables" $profile "enabled" -}}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPFlexVolumes
+metadata:
+  name: psp-flexvolume-drivers
+spec:
+spec:
+  enforcementAction: {{ index .Values "constraints" "flexvolume-drivers" "variables" $profile "enforcementAction" }}
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    {{- if index .Values "excludedNamespaces"}}
+    excludedNamespaces:
+    {{- range index .Values "excludedNamespaces"}}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    # namespaces:
+    #   - "production"  parameters:
+    allowedFlexVolumes:
+    {{- range index .Values "constraints" "flexvolume-drivers" "variables" $profile "allowedFlexVolumes"}}
+    - driver: {{ .driver }}
+    {{- end }}
+{{- end -}}

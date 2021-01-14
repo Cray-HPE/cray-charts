@@ -1,0 +1,20 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8spspvolumetypes
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPSPVolumeTypes
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            volumes:
+              type: array
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: {{ (.Files.Get "regos/volumes/volumes.src.rego") | toYaml | indent 6}}

@@ -1,0 +1,23 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8spspflexvolumes
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPSPFlexVolumes
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            allowedFlexVolumes:
+              type: array
+              items:
+                type: object
+                properties:
+                  driver:
+                    type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: {{ (.Files.Get "regos/flexvolume-drivers/flexvolume-drivers.src.rego") | toYaml | indent 6}}

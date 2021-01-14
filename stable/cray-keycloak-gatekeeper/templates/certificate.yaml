@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: keycloak-gatekeeper
+spec:
+  secretName: {{ .Values.certificateSecretName }}
+  issuerRef:
+    kind: Issuer
+    name: cert-manager-issuer-common
+  commonName: {{ index .Values.hosts 0 }}
+  duration: 8760h
+  renewBefore: 480h
+  dnsNames:
+{{- range .Values.hosts }}
+     - {{ . }}
+{{- end }}

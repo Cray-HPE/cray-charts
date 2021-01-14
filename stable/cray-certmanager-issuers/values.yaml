@@ -1,0 +1,56 @@
+#
+# used to patch issuers with dynamic service
+# account secret name
+#
+
+kubectl:
+  image:
+    repository: dtr.dev.cray.com/loftsman/loftsman
+    tag: 0.5.1
+    pullPolicy: IfNotPresent
+
+# Chart only deploys vault-backed issuers (e.g., no
+# self-signed currently). All values shown are required.
+# Each list member under vault-services must be unique,
+# minimally by instance.
+#
+# See the vault-issuers.yaml template for a mapping to
+# cert-manager issuer configuration.
+#
+
+vaultIssuers:
+  services-common:
+    namespace: services
+    instance: common
+    vaultServer: "http://cray-vault.vault.svc.cluster.local:8200"
+    vaultPKIRole: pki-common
+    vaultPKIPath: pki_common/sign
+    vaultK8SAuthPath: /v1/auth/kubernetes
+  istio-system-common:
+    namespace: istio-system
+    instance: common
+    vaultServer: "http://cray-vault.vault.svc.cluster.local:8200"
+    vaultPKIRole: pki-common
+    vaultPKIPath: pki_common/sign
+    vaultK8SAuthPath: /v1/auth/kubernetes
+  sma-common:
+    namespace: sma
+    instance: common
+    vaultServer: "http://cray-vault.vault.svc.cluster.local:8200"
+    vaultPKIRole: pki-common
+    vaultPKIPath: pki_common/sign
+    vaultK8SAuthPath: /v1/auth/kubernetes
+  spire-common:
+    namespace: spire
+    instance: common
+    vaultServer: "http://cray-vault.vault.svc.cluster.local:8200"
+    vaultPKIRole: pki-common
+    vaultPKIPath: pki_common/sign
+    vaultK8SAuthPath: /v1/auth/kubernetes
+  ceph-rgw-common:
+    namespace: ceph-rgw
+    instance: common
+    vaultServer: "http://cray-vault.vault.svc.cluster.local:8200"
+    vaultPKIRole: pki-common
+    vaultPKIPath: pki_common/sign
+    vaultK8SAuthPath: /v1/auth/kubernetes

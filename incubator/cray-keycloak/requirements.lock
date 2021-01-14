@@ -1,0 +1,6 @@
+dependencies:
+- name: keycloak
+  repository: https://kubernetes-charts.storage.googleapis.com
+  version: 4.7.0
+digest: sha256:06083d0095c584a22a4c3ee5661b80a7dc9a4d47beb07f532153f6821806d769
+generated: 2019-04-13T15:41:52.558744-06:00

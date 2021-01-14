@@ -1,0 +1,9 @@
+apiVersion: v1
+appVersion: 1.10.1
+# loftsman currently uses the name of the chart as the name of the release
+# we want the name of the release to be sealed-secrets to prevent
+# having to pass in the custom name to every `kubeseal` cli call
+name: sealed-secrets
+description: Cray Sealed Secrets
+home: "cloud/cray-charts"
+version: 0.1.0

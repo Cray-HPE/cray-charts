@@ -1,0 +1,14 @@
+#enable/disable helm testing
+runTests: true
+
+# mount path for regos
+mountpath: /rego/tests/
+
+crd:
+  # The number of CRDs that will be created. This is used in the wait-for job
+  count: 16
+
+kubectl:
+  image:
+    repository: dtr.dev.cray.com/loftsman/loftsman
+    tag: 0.5.1

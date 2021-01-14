@@ -1,0 +1,20 @@
+# Default values for cray-datastore.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+imagesHost: "dtr.dev.cray.com" # this value will always be set on helm install based on install context, this is a reasonable default
+
+replicaCount: 1
+images:
+  zookeeper:
+    repository: cache/zookeeper
+    tag: latest
+  datastore:
+    repository: cray/cray-datastore
+    tag: latest
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+

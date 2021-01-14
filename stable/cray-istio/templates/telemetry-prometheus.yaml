@@ -1,0 +1,44 @@
+# See https://istio.io/docs/tasks/telemetry/gateways/
+{{- if .Values.istio.prometheus.enabled }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: prometheus
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: prometheus
+    chart: prometheus
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  gateways:
+  - {{ .Values.global.authGateway }}
+  hosts:
+  - {{ .Values.istio.prometheus.externalAuthority }}
+  http:
+  - match:
+    - authority:
+        exact: {{ .Values.istio.prometheus.externalAuthority }}
+    route:
+    - destination:
+        host: prometheus
+        port:
+          number: 9090
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: prometheus
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: prometheus
+    chart: prometheus
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  host: prometheus
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+{{- end }}

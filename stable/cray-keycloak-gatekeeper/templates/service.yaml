@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "cray-keycloak-gatekeeper.fullname" . }}-ingress
+  labels:
+{{ include "cray-keycloak-gatekeeper.labels" . | indent 4 }}
+  annotations:
+    metallb.universe.tf/address-pool: customer-access
+    external-dns.alpha.kubernetes.io/hostname: {{ range $idx, $val := .Values.hosts }}{{ if gt $idx 0 }},{{ end }}{{ $val }}{{ end }}
+spec:
+  type: LoadBalancer
+  ports:
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: https
+  selector:
+    app: {{ template "cray-keycloak-gatekeeper.name" . }}-ingress
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: {{ template "cray-keycloak-gatekeeper.fullname" . }}-ingress
+  labels:
+{{ include "cray-keycloak-gatekeeper.labels" . | indent 4 }}
+spec:
+  host: {{ template "cray-keycloak-gatekeeper.fullname" . }}-ingress
+  trafficPolicy:
+    tls:
+      mode: DISABLE

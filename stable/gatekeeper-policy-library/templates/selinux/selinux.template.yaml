@@ -1,0 +1,31 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8spspselinuxv2
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPSPSELinuxV2
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            rule:
+              type: string
+            allowedSELinuxOptions:
+              type: array
+              items:
+                type: object
+                properties:
+                  level:
+                      type: string
+                  role:
+                      type: string
+                  type:
+                      type: string
+                  user:
+                      type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: {{ (.Files.Get "regos/selinux/selinux.src.rego") | toYaml | indent 6}}

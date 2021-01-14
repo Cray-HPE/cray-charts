@@ -1,0 +1,9 @@
+dependencies:
+- name: coredns
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  version: 1.10.1
+- name: external-dns
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  version: 2.20.4
+digest: sha256:01aa506f9fbc93b78ad6bce79ef1d45e9626acd00702e8146c92bd98ffd9d10b
+generated: "2020-09-10T22:12:04.5815717Z"

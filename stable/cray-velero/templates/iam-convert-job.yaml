@@ -1,0 +1,38 @@
+#
+# Convert Custom Secret format in ```velero-s3-credentials``` to AWS credential file format
+# required by Velero and Restic.
+#
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-iam-cred-job
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: hook-succeeded,before-hook-creation
+spec:
+  template:
+    metadata:
+      name: create-iam-cred-job
+    spec:
+      restartPolicy: Never
+      serviceAccountName: cray-velero-jobs
+      containers:
+      - name: myapp-container
+        image: {{ .Values.kubectl.image }}:{{ .Values.kubectl.tag }}
+        command: 
+          - 'sh'
+          - '-c'
+          - 'printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$S3_ACCESS_KEY_ID" "$S3_SECRET_KEY" > /tmp/.secret && kubectl -n {{ .Release.Namespace }} create secret generic velero-iam --from-file=cloud=/tmp/.secret --dry-run -o  yaml | kubectl apply -f -'
+        env:
+          - name: S3_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: velero-s3-credentials
+                key: access_key
+          - name: S3_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: velero-s3-credentials
+                key: secret_key

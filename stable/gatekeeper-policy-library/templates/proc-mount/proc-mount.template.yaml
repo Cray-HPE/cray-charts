@@ -1,0 +1,18 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8spspprocmount
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPSPProcMount
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            procMount:
+              type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: {{ (.Files.Get "regos/proc-mount/proc-mount.src.rego") | toYaml | indent 6}}

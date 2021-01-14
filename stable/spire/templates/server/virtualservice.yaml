@@ -1,0 +1,19 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ include "spire.fullname" . }}-server
+spec:
+  hosts:
+  - '*'
+  gateways:
+  - services/services-gateway
+  tls:
+  - match:
+    - port: 8081
+      sniHosts:
+      - {{ .Values.server.fqdn }}
+    route:
+    - destination:
+        host: spire-server
+        port:
+          number: 8081

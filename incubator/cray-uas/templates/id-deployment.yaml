@@ -1,0 +1,50 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ include "cray-uas.name" . }}-id
+  labels:
+    app.kubernetes.io/name: {{ include "cray-uas.name" . }}-id
+    helm.sh/chart: {{ include "cray-uas.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCounts.id }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "cray-uas.name" . }}-id
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "cray-uas.name" . }}-id
+        app.kubernetes.io/name: {{ include "cray-uas.name" . }}-id
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      hostPID: true
+      volumes:
+        - name: host-mount
+          hostPath:
+            path: /
+      containers:
+        - name: {{ include "cray-uas.name" . }}-id
+          image: "{{ .Values.images.id.repository }}:{{ .Values.images.id.tag }}"
+          imagePullPolicy: {{ .Values.images.id.pullPolicy }}
+          command: [ "/bin/bash", "-c" ]
+          args: [ "while true; do sleep 10; done;" ]
+          volumeMounts:
+            - mountPath: /host
+              name: host-mount
+          resources:
+{{ toYaml .Values.resources.id | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinities.id }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

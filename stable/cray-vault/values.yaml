@@ -1,0 +1,89 @@
+---
+# Default values for cray-vault.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+nameOverride: ""
+imagesHost: "sms.local:5000"
+
+# Needed for install/maintenance jobs
+kubectl:
+  image:
+    repository: dtr.dev.cray.com/loftsman/loftsman
+    tag: 0.5.1
+
+serviceAccountName: "vault"
+
+allowedAuthNamespaces:
+  - namespace: services
+    serviceaccount: "*"
+    ttl: 72h
+
+vault:
+  ui: false
+  size: 3
+  image: "library/vault:1.5.5"
+  bankVaultsImage: "banzaicloud/bank-vaults:1.8.0"
+  statsdImage: "prom/statsd-exporter:v0.18.0"
+  veleroFsfreezeImage: "baseos/ubuntu:bionic"
+  antiaffinity:
+    enabled: true
+    topologyKey: "kubernetes.io/hostname"
+
+audit:
+  enabled: false
+  path: /var/log/audit/service/vault/audit.log
+  pvc:
+    accessMode: "ReadWriteOnce"
+    storage: 10Gi
+
+jwt:  # TODO - Test this out
+  enabled: false
+  config:
+    oidc_discovery_url: "https://api-gw-service-nmn.local/keycloak"
+    bound_issuer: "https://api-gw-service-nmn.local/keycloak/realms/shasta"
+    default_role: "default"
+  audience: "cray"
+
+raft:
+  performance_multiplier: 5
+  pvc:
+    accessMode: "ReadWriteOnce"
+    storage: 2Gi
+
+pki:
+  customCA:
+    # Set enabled to true and set other fields accordingly
+    # to enable vault to mount a PKI engine and serve the
+    # supplied CA.
+    #
+    # Note that all of the certificate/key material provided
+    # must be PEM encoded. The ca_bundle.crt must only contain
+    # certificates that comprise the trust chain, and it is important
+    # that it does to ensure clients within the system can properly
+    # verify issued certificates.
+    #
+    # These settings should be managed by system-level customization, versus
+    # directly in chart.
+    #
+    enabled: true
+    secret: generated-platform-ca-1
+    private_key: int_ca.key
+    certificate: int_ca.crt
+    ca_bundle: root_ca.crt
+ssh:
+  certs:
+    # Set enabled to true and uncomment/edit/add realms to
+    # configure SSH Certificate trust realms.
+    # For each realm, allowedAuthNamespaces control
+    # the allow-list of service accounts accepted by namespace,
+    # for K8S auth to vault.
+    #
+    # Note that that SSH CA support is currently limited to
+    # user key support. Host key signing is also supported via
+    # vault, but not enabled here.
+    #
+    enabled: true
+    realms:
+      - name: compute
+        allowedAuthNamespaces:
+          - services

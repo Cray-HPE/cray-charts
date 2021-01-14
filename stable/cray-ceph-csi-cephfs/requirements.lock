@@ -1,0 +1,6 @@
+dependencies:
+- name: ceph-csi-cephfs
+  repository: https://ceph.github.io/csi-charts
+  version: 3.1.1
+digest: sha256:fc6fbad93a97fafa73e845a5ba8e1f635f5feb84ca8096c1ceca614870108097
+generated: "2020-11-20T21:27:53.906657317Z"

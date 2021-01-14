@@ -1,0 +1,17 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ template "cray-postgres-operator.fullname" . }}-{{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ template "cray-postgres-operator.name" . }}
+    helm.sh/chart: {{ template "cray-postgres-operator.chart" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ template "cray-postgres-operator.fullname" . }}
+subjects:
+- kind: ServiceAccount
+  name: {{ template "cray-postgres-operator.fullname" . }}
+  namespace: {{ .Release.Namespace }}

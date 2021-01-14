@@ -1,0 +1,29 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wait-for-opa-gatekeeper-crds
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+spec:
+  template:
+    metadata:
+      name: wait-for-opa-gatekeeper-crds
+      labels:
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: Never
+      serviceAccountName: gatekeeper-admin
+      containers:
+        - name: wait
+          image: "{{ .Values.kubectl.image.repository }}:{{ .Values.kubectl.image.tag }}"
+          command:
+            - '/bin/sh'
+          args:
+            - '-x'
+            - '-c'
+            - 'while [[ $(kubectl get customresourcedefinitions.apiextensions.k8s.io| grep -e "k8spsp.*gatekeeper" | wc -l) != {{ .Values.crd.count }} ]]; do echo "Waiting for CRDS to be created"; sleep 5; done'

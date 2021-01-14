@@ -1,0 +1,52 @@
+
+# Used for Helm Hooks
+kubectl:
+  image: gcr.io/vshasta-cray/loftsman/loftsman
+  tag: 0.5.1
+
+velero:
+  image:
+    repository: velero/velero
+    tag: v1.5.2
+  
+  initContainers:
+    # AWS plugin for velero
+    - name: velero-plugin-for-aws
+      image: velero/velero-plugin-for-aws:v1.1.0
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - mountPath: /target
+          name: plugins
+
+  # Use restic for pod volume backups
+  # note limitations here: https://velero.io/docs/v1.0.0/restic/#limitations
+  snapshotsEnabled: false
+  deployRestic: true
+
+  # This secret is created by a post-helm hook in this chart
+  # The source is a secret created by the ceph installer
+  credentials:
+    existingSecret: velero-iam
+
+  configuration:
+    provider: aws
+    
+    # https://velero.io/docs/v1.5/api-types/backupstoragelocation/
+    backupStorageLocation:
+      bucket: velero
+      config:
+        region: default # arbitrary, not currently utilized by Ceph RGW in product
+        
+        # Whether to use path-style addressing instead of virtual hosted bucket addressing. Set to "true"
+        # if using a local storage service like MinIO.
+        #
+        # Optional (defaults to "false").
+        s3ForcePathStyle: "true"
+
+        # Will need to use an HTTP endpoint until ceph-rgw supports a cert 
+        # signed by platform CA. Velero supports TLS without validation,
+        # but restic does not.
+        #
+        # https://github.com/vmware-tanzu/velero/issues/2335
+        # https://github.com/restic/restic/issues/2656
+        s3Url: http://ncn-s001-04fe9b8d:8080
