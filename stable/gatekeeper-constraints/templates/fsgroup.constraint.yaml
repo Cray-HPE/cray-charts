@@ -1,0 +1,27 @@
+{{- $profile := index .Values "constraints" "fsgroup" "profile" -}}
+{{- if index .Values "constraints" "fsgroup" "variables" $profile "enabled" -}}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPFSGroup
+metadata:
+  name: psp-fsgroup
+spec:
+  enforcementAction: {{ index .Values "constraints" "fsgroup" "variables" $profile "enforcementAction" }}
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    {{- if index .Values "excludedNamespaces"}}
+    excludedNamespaces:
+    {{- range index .Values "excludedNamespaces"}}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    # namespaces:
+    #   - "production"  parameters:  parameters:
+    rule: "{{ index .Values "constraints" "fsgroup" "variables" $profile "rule"}}"
+    ranges:
+    {{- range index .Values "constraints" "fsgroup" "variables" $profile "ranges"}}
+      - min: {{ .min }}
+        max: {{ .max }}
+    {{- end }}
+{{- end -}}

@@ -1,0 +1,104 @@
+
+hub: dtr.dev.cray.com/cray
+tag: 1.6.13
+
+kubectl:
+  image:
+    repository: dtr.dev.cray.com/loftsman/loftsman
+    tag: 0.5.1
+
+pilot:
+  hub: dtr.dev.cray.com/cray
+  tag: 1.6.13-20201124212805_2d14808f51
+
+istio:
+
+  global:
+    tag: 1.6.13
+    ## This tag is used by istio-proxy sidecar image.
+    ## For reference check this line:
+    ## https://stash.us.cray.com/projects/SPET/repos/istio/browse/operator/pkg/vfs/assets.gen.go#7468
+
+    istioNamespace: istio-system
+    controlPlaneSecurityEnabled: true
+    mtls:
+      enabled: true
+      auto: false
+    proxy:
+      accessLogFile: "/dev/stdout"
+    disablePolicyChecks: false
+    useMCP: false
+
+  sidecarInjectorWebhook:
+    rewriteAppHTTPProbe: true
+
+  galley:
+    enabled: false
+
+  gateways:
+    istio-ingressgateway:
+      enabled: false  # This is disabled here to work around limitation of istio 1.5. It's enabled in the cray-istio chart.
+      type: LoadBalancer
+      autoscaleEnabled: true
+      autoscaleMin: 2
+      autoscaleMax: 5
+      ports:
+      - port: 80
+        name: http2
+      - port: 443
+        name: https
+      env:
+        ISTIO_META_IDLE_TIMEOUT: 10m
+
+  prometheus:
+    enabled: true
+    hub: quay.io/prometheus
+    image: prometheus
+    tag: v2.15.2
+    resources:
+      requests:
+        cpu: 10m
+        memory: 5Gi
+      limits:
+        cpu: "2"
+        memory: 8Gi
+    retention: 4h
+    security:
+      enabled: false
+
+  grafana:
+    enabled: true
+    image:
+      repository: grafana/grafana
+      tag: 6.7.4
+    security:
+      enabled: false
+
+  tracing:
+    enabled: true
+    provider: jaeger
+    jaeger:
+      memory:
+        max_traces: 50000
+
+  kiali:
+    enabled: true
+    dashboard:
+      auth:
+        strategy: anonymous
+      grafanaURL: https://grafana-istio.local/
+      jaegerURL: https://jaeger-istio.local/
+# cray-istio has been setting custom_metrics_url per the kiali documentation
+# https://kiali.io/documentation/runtimes-monitoring/#_prometheus_configuration
+# but the istio/kiali chart sets url. This value also adds the custom_metrics_url
+# setting at the right indentation in the generated kiali ConfigMap. Maybe this
+# workaround can be removed in a future release.
+    prometheusAddr: |
+      http://prometheus.istio-system:9090
+              custom_metrics_url: http://prometheus.istio-system:9090/
+    createDemoSecret: false
+
+  pilot:
+    env:
+      USE_ISTIO_JWT_FILTER: "true"
+      PILOT_ENABLE_UNSAFE_REGEX: "true"

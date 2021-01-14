@@ -1,0 +1,26 @@
+{{- $profile := index .Values "constraints" "volumes" "profile" -}}
+{{- if index .Values "constraints" "volumes" "variables" $profile "enabled" -}}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPVolumeTypes
+metadata:
+  name: psp-volume-types
+spec:
+  enforcementAction: {{ index .Values "constraints" "volumes" "variables" $profile "enforcementAction" }}
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    {{- if index .Values "excludedNamespaces"}}
+    excludedNamespaces:
+    {{- range index .Values "excludedNamespaces"}}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    # namespaces:
+    #   - "production"
+  parameters:
+    volumes:
+    {{- range index .Values "constraints" "volumes" "variables" $profile "volumes"}}
+    - "{{ . }}"
+    {{- end }}
+{{- end -}}

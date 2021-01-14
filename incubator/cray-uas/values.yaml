@@ -1,0 +1,103 @@
+# Default values for cray-uas.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCounts:
+  id: 1
+  mgr: 1
+
+images:
+  id:
+    repository: dtr.dev.cray.com/cray-uas-mgr
+    tag: latest
+    pullPolicy: IfNotPresent
+  register-api-gateway:
+    repository: dtr.dev.cray.com/cray-api-gateway-tools
+    tag: latest
+    pullPolicy: IfNotPresent
+  mgr:
+    repository: dtr.dev.cray.com/cray-uas-mgr
+    tag: latest
+    pullPolicy: IfNotPresent
+
+containers:
+  register-api-gateway:
+    httpsRequired: 'True'
+    internalUrl: "" # TODO: how to populate this?
+  mgr:
+    port: 8080
+
+services:
+  mgr:
+    type: ClusterIP
+    port: 8080
+
+kong:
+  adminClientAuthSecretName: ""
+  authRequired: 'True'
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+  id: {}
+  mgr: {}
+
+nodeSelectors:
+  id: {}
+  mgr: {}
+
+tolerations:
+  id: []
+  mgr: []
+
+affinities:
+  id:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: uas
+            operator: Exists
+  mgr:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: uas
+            operator: Exists
+
+configs:
+  # TODO: not clear how all of the below are actually used in the respective configmap mounts, not sure if they're necessary
+  # or if maybe we can help in restructuring a bit, but leaving as close to as-is for now
+  mgr:
+    # UAS Instance IP/hostname.
+    # This section defines the external IP/hostname that UAS instance services
+    # will use.
+    uasIps: []
+    # Volume mounts.
+    # This section defines which filesystems will be volume mounted from the
+    # host to the UAS instance.
+    #   name: name of the mount
+    #   mount_path: absolute path where the UAS instance should mount this volume.
+    #   host_path: absolute path on the host system of the volume to mount.
+    volumeMounts: []
+    # UAS Images
+    # The following list contains the supported images a user may choose for
+    # their UAS instance.  Image names must be quoted if they contain special
+    # characters such as ':'.
+    #
+    #   default_image: default image name to use if none are selected.
+    #   images:
+    #     - 'repo:port/cray-uas-img:latest'
+    uasImages: {}

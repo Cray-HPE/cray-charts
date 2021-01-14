@@ -1,0 +1,71 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8spspallowedusers
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPSPAllowedUsers
+      validation:
+        openAPIV3Schema:
+          properties:
+            runAsUser:
+              type: object
+              properties:
+                rule:
+                  type: string
+                ranges:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      min:
+                        type: integer
+                      max:
+                        type: integer
+            runAsGroup:
+              type: object
+              properties:
+                rule:
+                  type: string
+                ranges:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      min:
+                        type: integer
+                      max:
+                        type: integer
+            supplementalGroups:
+              type: object
+              properties:
+                rule:
+                  type: string
+                ranges:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      min:
+                        type: integer
+                      max:
+                        type: integer
+            fsGroup:
+              type: object
+              properties:
+                rule:
+                  type: string
+                ranges:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      min:
+                        type: integer
+                      max:
+                        type: integer
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: {{ (.Files.Get "regos/users/users.src.rego") | toYaml | indent 6}}

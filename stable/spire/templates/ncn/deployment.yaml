@@ -1,0 +1,83 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: request-ncn-join-token
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      name: request-ncn-join-token
+  template:
+    metadata:
+      name: request-ncn-join-token
+      labels:
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        name: request-ncn-join-token
+    spec:
+      tolerations:
+        # this toleration is to have the daemonset runnable on master nodes
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
+      initContainers:
+        - name: init-setperms
+          image: "{{ include "spire.image-prefix" . }}{{ .Values.ncn.init.repository }}:{{ .Values.ncn.init.tag }}"
+          command:
+            - '/bin/sh'
+          args:
+            - '-x'
+            - '-c'
+            - 'touch /token/{{ .Values.ncn.filename }} /token/spire-agent.conf /token/bundle.crt; chown 100:101 /token/{{ .Values.ncn.filename }} /token/spire-agent.conf /token/bundle.crt'
+          volumeMounts:
+            - name: token
+              mountPath: /token
+        - name: request-ncn-join-token
+          image: "{{ include "spire.image-prefix" . }}{{ .Values.ncn.curl.repository }}:{{ .Values.ncn.curl.tag }}"
+          command:
+            - '/bin/sh'
+          args:
+            - '-x'
+            - '-c'
+            - 'while ! curl -k -X POST -d "xname=$(echo ${NODE_NAME} | tr -d \-)" "$URL" > /tmp/token; do sleep 5; done; if ! grep -qi error /tmp/token; then echo "join_token=$(cat /tmp/token | cut -d\" -f4)" > "/token/{{ .Values.ncn.filename }}";fi; cat /config/spire-agent.conf > /token/spire-agent.conf ; while true; do if test -e /bundle/bundle.crt; then cat /bundle/bundle.crt > /token/bundle.crt; break; fi; sleep 10; done'
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: URL
+              value: "{{ .Values.ncn.url }}"
+          volumeMounts:
+            - name: token
+              mountPath: /token
+            - name: {{ template "spire.name" . }}-config
+              mountPath: /config
+              readOnly: true
+            - name: spire-bundle
+              mountPath: /bundle
+              readOnly: true
+        - name: init-restoreperms
+          image: "{{ include "spire.image-prefix" . }}{{ .Values.ncn.init.repository }}:{{ .Values.ncn.init.tag }}"
+          command:
+            - '/bin/sh'
+          args:
+            - '-x'
+            - '-c'
+            - 'chown root:root /token/{{ .Values.ncn.filename }} /token/spire-agent.conf /token/bundle.crt'
+          volumeMounts:
+            - name: token
+              mountPath: /token
+      containers:
+        - name: pause
+          image: "{{ include "spire.image-prefix" . }}{{ .Values.ncn.pause.repository }}:{{ .Values.ncn.pause.tag }}"
+      volumes:
+        - name: token
+          hostPath:
+            path: "{{ .Values.ncn.path }}"
+            type: DirectoryOrCreate
+        - name: {{ template "spire.name" . }}-config
+          configMap:
+            name: {{ template "spire.name" . }}-ncn-config
+        - name: spire-bundle
+          configMap:
+            name: spire-bundle

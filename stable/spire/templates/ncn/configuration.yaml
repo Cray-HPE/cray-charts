@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spire.fullname" . }}-ncn-config
+  labels:
+    app.kubernetes.io/name: {{ template "spire.name" . }}-ncn
+    {{- include "spire.common-labels" . | nindent 4 }}
+data:
+  spire-agent.conf: |-
+    agent {
+      data_dir = "/root/spire"
+      log_level = "INFO"
+      server_address = "{{ .Values.server.fqdn }}"
+      server_port = "8081"
+      socket_path = "/root/spire/agent.sock"
+      trust_bundle_path = "/root/spire/conf/bundle.crt"
+      trust_domain = "{{ .Values.trustDomain }}"
+      join_token = "$join_token"
+    }
+
+    plugins {
+      NodeAttestor "join_token" {
+        plugin_data {}
+      }
+
+      KeyManager "disk" {
+        plugin_data {
+            directory = "/root/spire/data"
+        }
+      }
+
+      WorkloadAttestor "unix" {
+        plugin_data {
+            discover_workload_path = true
+        }
+      }
+    }

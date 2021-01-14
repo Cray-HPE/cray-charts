@@ -1,0 +1,14 @@
+#
+# Copyright 2020 Hewlett Packard Enterprise Development LP
+#
+# Default values for cray-baremetal-etcd-backup
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+imagesHost: "dtr.dev.cray.com"
+
+crayBaremetalEtcdBackup:
+  crayEtcdBackupSchedule: '*/10 * * * *'
+  kubeEtcdBackupImage: "roffe/kube-etcdbackup:v0.1.0"

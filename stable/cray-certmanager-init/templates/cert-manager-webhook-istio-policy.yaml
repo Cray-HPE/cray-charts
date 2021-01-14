@@ -1,0 +1,17 @@
+{{- if and .Values.namespace.istioInjection (eq .Values.namespace.istioInjection "enabled") }}
+apiVersion: "security.istio.io/v1beta1"
+kind: "PeerAuthentication"
+metadata:
+  name: cray-certmanager-cert-manager-webhook
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    app: security
+spec:
+  selector:
+    matchLabels:
+      app: webhook
+      app.kubernetes.io/component: webhook
+      app.kubernetes.io/instance: cray-certmanager
+  mtls:
+    mode: PERMISSIVE
+{{- end}}

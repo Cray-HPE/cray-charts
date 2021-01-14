@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spire.fullname" . }}-bss-config
+  labels:
+    app.kubernetes.io/name: {{ template "spire.name" . }}-update-bss
+    {{- include "spire.common-labels" . | nindent 4 }}
+data:
+  bss-update.json: |-
+    {
+      "hosts": [
+        "Global"
+      ],
+      "cloud-init": {
+        "meta-data": {
+          "spire": {
+            "trustdomain": "{{ .Values.trustDomain }}",
+            "fqdn": "{{ .Values.server.fqdn }}"
+          }
+        }
+      }
+    }

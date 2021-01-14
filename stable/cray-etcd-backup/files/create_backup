@@ -1,0 +1,66 @@
+#!/bin/sh
+# Copyright 2020, Cray Inc. All Rights Reserved.
+
+project=$1
+backup_name=$2
+s3_endpoint=$(cat /conf/s3_endpoint)
+
+if test "$#" -ne 2; then
+    echo "Usage: create_backup <project_name> <backup_name>"
+    exit 1
+fi
+
+random_num=$RANDOM
+file=/tmp/$project-backup-$random_num.yaml
+line=$(grep $project /usr/local/sbin/clusters.txt)
+namespace=$(echo $line | awk 'BEGIN { FS = "." } ; {print $2}')
+tls_secret=$(echo $line | awk 'BEGIN { FS = "." } ; {print $5}')
+ip=$(kubectl get service -n $namespace $project-etcd-client -ojsonpath='{.spec.clusterIP}' 2>&1)
+rc=$?
+
+if [ $rc -ne 0 ]; then
+    echo "ERROR: Failed to get etcd cluster IP"
+    exit 1
+fi
+
+if [ $tls_secret != "" ]; then
+
+cat > $file <<EOF
+apiVersion: "etcd.database.coreos.com/v1beta2"
+kind: "EtcdBackup"
+metadata:
+  name: $project-etcd-cluster-manual-backup-$random_num
+  namespace: $namespace
+spec:
+  etcdEndpoints: [https://$ip:2379]
+  storageType: S3
+  clientTLSSecret: $tls_secret
+  allowSelfSignedCertificates: true
+  s3:
+    path: etcd-backup/$project/$backup_name
+    awsSecret: etcd-backup-restore-aws-config
+    forcePathStyle: true
+    endpoint: $s3_endpoint
+EOF
+
+else
+
+cat > $file <<EOF
+apiVersion: "etcd.database.coreos.com/v1beta2"
+kind: "EtcdBackup"
+metadata:
+  name: $project-etcd-cluster-manual-backup-$random_num
+  namespace: $namespace
+spec:
+  etcdEndpoints: [http://$ip:2379]
+  storageType: S3
+  s3:
+    path: etcd-backup/$project/$backup_name
+    awsSecret: etcd-backup-restore-aws-config
+    forcePathStyle: true
+    endpoint: $s3_endpoint
+EOF
+
+fi
+
+kubectl -n $namespace apply -f $file

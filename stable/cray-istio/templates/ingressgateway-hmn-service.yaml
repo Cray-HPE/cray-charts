@@ -1,0 +1,69 @@
+{{- /*
+Copyright 2020 Hewlett Packard Enterprise Development LP
+
+This is a copy of charts/ingressgatewayhmn/templates/service.yaml with a few changes:
+1. The check for .customService is removed because this is rendered in place of
+   the original Service
+2. extraServiceLabels are added to the Service's labels.
+
+This is done in order to give just the Service (and not the Deployment) an extra
+label for the PeerAuthentication to match on.
+When the Deployment is given extra labels this also affects its selector which
+can't be modified during an upgrade.
+*/ -}}
+
+{{ $gateway := index .Values.ingressgatewayhmn "gateways" "istio-ingressgateway-hmn" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $gateway.name | default "istio-ingressgateway-hmn" }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    {{- range $key, $val := $gateway.serviceAnnotations }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end }}
+  labels:
+{{ $gateway.labels | toYaml | indent 4 }}
+{{ $gateway.extraServiceLabels | toYaml | indent 4 }}
+    release: {{ .Release.Name }}
+spec:
+{{- if $gateway.loadBalancerIP }}
+  loadBalancerIP: "{{ $gateway.loadBalancerIP }}"
+{{- end }}
+{{- if $gateway.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+{{ toYaml $gateway.loadBalancerSourceRanges | indent 4 }}
+{{- end }}
+{{- if $gateway.externalIPs }}
+  externalIPs:
+{{ toYaml $gateway.externalIPs | indent 4 }}
+{{- end }}
+{{- if $gateway.externalTrafficPolicy }}
+  externalTrafficPolicy: {{$gateway.externalTrafficPolicy }}
+{{- end }}
+  type: {{ $gateway.type }}
+  selector:
+{{ $gateway.labels | toYaml | indent 4 }}
+  ports:
+
+    {{- range $key, $val := $gateway.ports }}
+    -
+      {{- range $pkey, $pval := $val }}
+      {{ $pkey}}: {{ $pval }}
+      {{- end }}
+    {{- end }}
+
+    {{- if $.Values.global.meshExpansion.enabled }}
+    {{- range $key, $val := $gateway.meshExpansionPorts }}
+    -
+      {{- range $pkey, $pval := $val }}
+      {{ $pkey}}: {{ $pval }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+  {{ range $app := $gateway.ingressPorts }}
+    -
+      port: {{ $app.port }}
+      name: {{ $app.name }}
+  {{- end }}
+---

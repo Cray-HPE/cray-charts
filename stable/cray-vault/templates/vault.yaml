@@ -1,0 +1,324 @@
+apiVersion: "vault.banzaicloud.com/v1alpha1"
+kind: "Vault"
+metadata:
+  name: "{{ include "cray-vault.name" . }}"
+  vault_cr: "{{ include "cray-vault.name" . }}"
+spec:
+  size: {{ .Values.vault.size }}
+  image: "{{ include "cray-vault.image-prefix" . }}{{ .Values.vault.image }}"
+  bankVaultsImage: "{{ include "cray-vault.image-prefix" . }}{{ .Values.vault.bankVaultsImage }}"
+  statsdImage: "{{ include "cray-vault.image-prefix" . }}{{ .Values.vault.statsdImage }}"
+
+  # Velero backup
+
+  vaultAnnotations:
+    backup.velero.io/backup-volumes: vault-raft
+  veleroEnabled: true
+  veleroFsfreezeImage: "{{ include "cray-vault.image-prefix" . }}{{ .Values.vault.veleroFsfreezeImage }}"
+  
+  {{- if .Values.vault.antiaffinity.enabled }}
+  podAntiAffinity: {{ .Values.vault.antiaffinity.topologyKey }}
+  {{- end }}
+
+  # Specify the ServiceAccount where the Vault Pod and the Bank-Vaults configurer/unsealer is running
+  serviceAccount: {{ .Values.serviceAccountName }}
+
+  # If resources for vault are not set, the vault-operator will apply
+  # defaults that have proven too low for our use.
+  # e.g. https://github.com/banzaicloud/bank-vaults/blob/fe2edfa64f99b77a1b7719900ca8add5fa869d68/operator/deploy/cr-resource.yaml#L10
+
+  resources:
+    vault:
+      limits:
+        cpu: 2
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 768Mi
+
+  volumeClaimTemplates:
+    - metadata:
+        name: vault-raft
+      spec:
+        # https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1
+        # storageClassName: ""
+        accessModes:
+        - {{ .Values.raft.pvc.accessMode }}
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: {{ .Values.raft.pvc.storage }}
+        persistentVolumeReclaimPolicy: Retain
+    {{- if .Values.audit.enabled }}
+    - metadata:
+        name: vault-audit
+      spec:
+        # https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1
+        # storageClassName: ""
+        accessModes:
+        - {{ .Values.audit.pvc.accessMode }}
+        persistentVolumeReclaimPolicy: Retain
+        resources:
+          requests:
+            storage: {{ .Values.audit.pvc.storage }}
+    {{- end }}
+
+  volumeMounts:
+    - name: vault-raft
+      mountPath: /vault/file
+    {{- if .Values.audit.enabled }}
+    - name: vault-audit
+      mountPath: /var/log/audit/service/vault
+    {{- end }}
+
+  # Marks presence of Istio, which influences things like port namings
+  istioEnabled: true
+
+  # Support for distributing the generated CA certificate Secret to other namespaces.
+  # Define a list of namespaces or use ["*"] for all namespaces.
+  caNamespaces:
+    - "*"
+
+  # Describe where you would like to store the Vault unseal keys and root token.
+  unsealConfig:
+    kubernetes:
+      secretNamespace: {{ .Release.Namespace }}
+
+  # A YAML representation of a final vault config file.
+  # See https://www.vaultproject.io/docs/configuration/ for more information.
+  config:
+    storage:
+      raft:
+        path: "/vault/file"
+        # Scales key Raft algorithm timing parameters
+        # See https://learn.hashicorp.com/tutorials/vault/performance-tuning#performance_multiplier for more information
+        performance_multiplier: "{{ .Values.raft.performance_multiplier }}"
+    listener:
+      tcp:
+        tls_disable: true
+        address: "0.0.0.0:8200"
+    api_addr: http://{{ include "cray-vault.name" . }}.{{ .Release.Namespace }}:8200
+    telemetry:
+      statsd_address: localhost:9125
+    cluster_addr: "https://${.Env.POD_NAME}:8201"
+    ui: {{ .Values.vault.ui }}
+
+  # See: https://github.com/banzaicloud/bank-vaults/blob/master/vault-config.yml for more details.
+  externalConfig:
+    policies:
+      # Enable broad access to secrets engine
+      - name: allow_secrets
+        rules: path "secret/*" {
+          capabilities = ["create", "read", "update", "delete", "list"]
+          }
+      # Enable broad access to transit engine
+      - name: allow_transit
+        rules: path "transit/*" {
+          capabilities = ["create", "read", "update", "delete", "list"]
+          }
+      {{- if .Values.pki.customCA.enabled }}
+      # This pki-engine policy is used by cert-manager for 'common' issuers
+      # to request leaf certificate signing
+      # path == pki-mount/action/pki-role
+      - name: pki-common
+        rules: path "pki_common/sign/pki-common" { capabilities = ["update"] }
+      # This pki-engine policy is used by services requesting leaf certificates
+      # from the vault API, directly (i.e., not through cert-manager)
+      # path == pki-mount/action/pki-role
+      - name: pki-common-direct
+        rules: |
+          path "pki_common/issue/pki-common" { capabilities = ["create", "update"] }
+          path "pki_common/revoke" { capabilities = ["create", "update"] }
+      # This pki-engine policy is used by spire-intermediate to request an intermediate CA
+      # certificate for spire
+      # path == pki-mount/action
+      - name: spire-intermediate
+        rules: path "pki_common/root/sign-intermediate" { capabilities = ["update"] }
+      {{- end }}
+      # This ssh-engine policy is used by services requesting SSH pub key signatures
+      # for SSH certs, from vault
+      # path == ssh-mount/action/ssh-role
+      {{- if .Values.ssh.certs.enabled }}
+      {{- range .Values.ssh.certs.realms }}
+      - name: ssh-user-certs-{{ .name }}
+        rules: |
+          path "ssh_user_certs_{{ .name }}/sign/{{ .name }}" { capabilities = ["update"] }
+      {{- end }}
+      {{- end }}
+    auth:
+      - type: kubernetes
+        roles:
+          {{- if .Values.pki.customCA.enabled }}
+          # authN role used by cert-manager for 'common', namespace-bound issuers
+          # via pki-common mount
+          - name: pki-common
+            bound_service_account_names:
+              - cert-manager-issuer-common
+            bound_service_account_namespaces:
+              - ceph-rgw
+              - services
+              - istio-system
+              - sma
+              - spire
+            policies:
+              - pki-common
+            ttl: 1h
+          # authN role for direct vault API certificate issuance via pki-common mount
+          # for all service accounts in the bound namespaces
+          - name: pki-common-direct
+            bound_service_account_names:
+              - "*"
+            bound_service_account_namespaces:
+              - services
+            policies:
+              - pki-common-direct
+            ttl: 1h
+          # authN role for direct vault API intermediate CA signing requests
+          # for the spire-intermediate container
+          - name: spire-intermediate
+            bound_service_account_names:
+              - "spire-intermediate"
+            bound_service_account_namespaces:
+              - vault
+            policies:
+              - spire-intermediate
+            ttl: 1h
+          {{- end }}
+          {{- if .Values.ssh.certs.enabled }}
+          # authN role(s) that (by policy) allows access to SSH certs engine(s)
+          # and the transit engine (for key gen)
+          {{- range .Values.ssh.certs.realms }}
+          - name: ssh-user-certs-{{ .name }}
+            bound_service_account_names:
+              - "*"
+            bound_service_account_namespaces:
+              {{- range .allowedAuthNamespaces }}
+              - {{ . | quote }}
+              {{- end }}
+            policies:
+              - ssh-user-certs-{{ .name }}
+              - allow_transit
+            ttl: 1h
+          {{- end }}
+          {{- end }}
+          {{- range .Values.allowedAuthNamespaces }}
+          # authN role that (by policy) allows broad access to secrets and transit engine
+          - name: {{ .namespace | quote }}
+            bound_service_account_names:
+              - {{ .serviceaccount | quote }}
+            bound_service_account_namespaces:
+              - {{ .namespace | quote }}
+            policies:
+              - allow_secrets
+              - allow_transit
+            ttl: {{ .ttl }}
+          {{- end }}
+      {{- if .Values.jwt.enabled }}
+      - type: jwt
+        path: jwt
+        config:
+          {{- range $key, $val := .Values.jwt.config }}
+          {{ $key }}: {{ $val | quote }}
+          {{- end }}
+        roles:
+          - name: default
+            role_type: jwt
+            bound_audiences:
+              - {{ .Values.jwt.audience }}
+            user_claim: preferred_username
+            policies: allow_secrets
+            ttl: {{ .Values.jwt.ttl | default "10m" }}
+      {{- end }}
+
+    {{- if .Values.audit.enabled }}
+    audit:
+      - type: file
+        description: "File Audit log"
+        options:
+          file_path: {{ .Values.audit.path }}
+    {{- end }}
+
+    secrets:
+      - path: secret
+        type: kv
+        description: General secrets.
+        options:
+          version: 1
+      - path: transit
+        type: transit
+        description: Transit Engine
+      {{- if .Values.pki.customCA.enabled }}
+      # This configures PKI instances within vault
+      - path: pki_common
+        type: pki
+        description: Vault PKI Backend
+        config:
+          # use roles to override
+          default_lease_ttl: 13140h
+          max_lease_ttl: 87600h
+        configuration:
+          config:
+            # The CA, and CA chain will be available relative to the issuing
+            # certificates config
+            - name: urls
+              issuing_certificates: http://{{ include "cray-vault.name" . }}.{{ .Release.Namespace }}:8200/v1/pki_common/ca
+              crl_distribution_points: http://{{ include "cray-vault.name" . }}.{{ .Release.Namespace }}:8200/v1/pki_common/crl
+          roles:
+            # TODO pki-common:
+            #   - restrict CN and alt names to a set of FQDNs (platform FQDN and K8S FQDN)
+            #   - look at need for wildcard cert issuance and edge cases like allowing localhost or IP sans in a cert
+            #   - look at need to support URI sans
+            #   - review allowed/default cert usages
+            #   - update subject name fields (ou,org,country,locality,...) to match injected CA
+            - name: pki-common
+              max_ttl: 8760h
+              allow_any_name: true
+              enforce_hostnames: false
+              key_type: rsa
+      {{- end }}
+      {{- if .Values.ssh.certs.enabled }}
+      # This configures SSH cert signing instances within vault
+      {{- range .Values.ssh.certs.realms }}
+      - path: ssh_user_certs_{{ .name }}
+        type: ssh
+        description: SSH Certificate Signing for '{{ .name }}' Realm
+        configuration:
+          config:
+            - name: ca
+              generate_signing_key: "true"
+          roles:
+            - name: {{ .name }}
+              allow_user_certificates: "true"
+              allowed_users: "*"
+              key_type: "ca"
+              default_user: "nobody"
+              max_ttl: "87600h"
+              algorithm_signer: "rsa-sha2-256"
+              allowed_user_key_lengths:
+                rsa: 4096
+                ecdsa: 384
+              allow_user_key_ids: "true"
+              default_extensions:
+                permit-pty: ""
+                permit-port-forwarding: ""
+                permit-agent-forwarding: ""
+                permit-X11-forwarding: ""
+      {{- end }}
+      {{- end }}
+
+    {{- if .Values.pki.customCA.enabled }}
+    # A CA must be supplied (via secret ref) if customCA is enabled
+    # note that the name/keys are concatenated into a single payload
+    # that gets imported into Vault, and Vault deals with parsing.
+    startupSecrets:
+      - type: pki
+        path: pki_common/config/ca
+        data:
+         secretKeyRef:
+          - name: {{ .Values.pki.customCA.secret }}
+            key: {{ .Values.pki.customCA.private_key }}
+          - name: {{ .Values.pki.customCA.secret }}
+            key: {{ .Values.pki.customCA.certificate }}
+          - name: {{ .Values.pki.customCA.secret }}
+            key: {{ .Values.pki.customCA.ca_bundle }}
+    {{- end }}

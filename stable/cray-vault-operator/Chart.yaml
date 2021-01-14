@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+appVersion: 1.8.0
+name: cray-vault-operator
+description: Cray Vault Operator for secure secret stores
+home: "cloud/cray-charts"
+version: 1.1.0

@@ -1,0 +1,76 @@
+{{ $hmnSpec := index .Values.ingressgatewayhmn.gateways "istio-ingressgateway-hmn" }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: services-gateway
+  namespace: {{ .Values.gatewayNamespace }}
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        {{- range .Values.servicesGateway.hosts }}
+        - {{ . | title | quote }}
+        {{- end }}
+{{- if .Values.servicesGateway.tls }}
+      tls:
+        httpsRedirect: {{ .Values.servicesGateway.redirect }} # sends 301 redirect for http requests
+    - port:
+        number: 443
+        name: https-443
+        protocol: HTTPS
+      hosts:
+        {{- range .Values.servicesGateway.hosts }}
+        - {{ . | title | quote }}
+        {{- end }}
+      tls:
+        mode: SIMPLE
+        credentialName: {{ .Values.certificate.secretName }}
+{{- end }}
+{{- if .Values.servicesGateway.spire.enabled }}
+    - port:
+        number: 8081
+        name: tls-spire
+        protocol: TLS
+      hosts:
+        {{- range .Values.servicesGateway.spire.hosts }}
+        - {{ . | title | quote }}
+        {{- end }}
+      tls:
+        mode: PASSTHROUGH
+{{- end }}
+{{- if .Values.servicesGateway.cloudinit.enabled }}
+    - port:
+        number: 8888
+        name: cloudinit
+        protocol: HTTP
+      hosts:
+        {{- range .Values.servicesGateway.cloudinit.hosts }}
+        - {{ . | title | quote }}
+        {{- end }}
+{{- end }}
+---
+{{- if $hmnSpec.enabled }}
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: hmn-gateway
+  namespace: {{ .Values.gatewayNamespace }}
+spec:
+  selector:
+    {{- range $key, $val := $hmnSpec.labels }}
+    {{ $key }}: {{ $val }}
+    {{- end }}
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
+{{- end }}

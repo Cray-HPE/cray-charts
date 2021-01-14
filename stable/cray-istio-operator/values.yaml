@@ -1,0 +1,8 @@
+istio-operator:
+  hub: dtr.dev.cray.com/cray
+  tag: 1.6.13-20201124212805_2d14808f51
+
+kubectl:
+  image:
+    repository: dtr.dev.cray.com/loftsman/loftsman
+    tag: 0.5.1

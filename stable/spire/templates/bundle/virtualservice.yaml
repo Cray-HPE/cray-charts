@@ -1,0 +1,20 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ include "spire.name" . }}-bundle
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - services/services-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /{{ .Values.bundle.uriPrefix }}/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: {{ include "spire.name" . }}-bundle
+        port:
+          number: {{ .Values.bundle.port }}

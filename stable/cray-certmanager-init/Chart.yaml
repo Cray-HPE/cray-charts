@@ -1,0 +1,11 @@
+apiVersion: v1
+appVersion: 0.14.1
+description: cert-manager CRDs and other init actions
+keywords:
+- cert-manager
+icon: https://github.com/jetstack/cert-manager/raw/master/logo/logo.png
+sources:
+- https://github.com/jetstack/cert-manager
+name: cray-certmanager-init
+home: "cloud/cray-charts"
+version: 0.5.0

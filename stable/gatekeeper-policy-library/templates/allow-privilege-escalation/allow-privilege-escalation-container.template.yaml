@@ -1,0 +1,13 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8spspallowprivilegeescalationcontainer
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPSPAllowPrivilegeEscalationContainer
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: {{ (.Files.Get "regos/allow-privilege-escalation/allow-privilege-escalation-container.src.rego") | toYaml | indent 6}}
+      

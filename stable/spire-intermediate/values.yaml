@@ -1,0 +1,19 @@
+# Default values for spire-intermediate.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+nameOverride: ""
+imagesHost: "sms.local:5000"
+
+global:
+  chart:
+    name: "" # set at deploy time automatically, no need to ever set explicitly
+    version: "" # set at deploy time automatically, no need to ever set explicitly
+
+image:
+  repository: cray/cray-spire-intermediate
+  tag: 0.1.1-20200805202257_ff71a42
+
+namespaces:
+  - spire
+
+vaultPKIPath: pki_common

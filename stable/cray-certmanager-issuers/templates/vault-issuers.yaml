@@ -1,0 +1,48 @@
+{{- range $.Values.vaultIssuers }}
+#
+# Service Account is specific to issuers, and requires
+# policy in vault against a PKI engine to allow auth.
+#
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cert-manager-issuer-{{ .instance }}
+  namespace: {{ .namespace }}
+---
+#
+# Create a vault issuer. The secretRef name will
+# be patched later, and will not initially be valid
+#
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: cert-manager-issuer-{{ .instance }}
+  namespace: {{ .namespace }}
+spec:
+  vault:
+    path: {{ .vaultPKIPath }}/{{ .vaultPKIRole }}
+    server: {{ .vaultServer }}
+    auth:
+      kubernetes:
+        role: {{ .vaultPKIRole }}
+        mountPath: {{ .vaultK8SAuthPath }}
+        secretRef:
+          name: cert-manager-issuer-{{ .instance }}-token
+          key: token
+---
+#
+# Create a configmap to store a simple k8s patch script, used
+# to patch the secretRef by post* helm hooks.
+#
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cert-manager-issuer-{{ .instance }}-{{ .namespace }}-patch
+data:
+  entrypoint.sh: |-
+    #!/bin/bash
+    SECRET_NAME="$(kubectl get sa cert-manager-issuer-{{ .instance }} -n {{ .namespace }} -o jsonpath='{.secrets[0].name}')"
+    echo -e "spec:\n  vault:\n    auth:\n      kubernetes:\n        secretRef:\n          name: $SECRET_NAME" > /tmp/issuer.patch
+    kubectl patch issuer -n {{ .namespace }} cert-manager-issuer-{{ .instance }} --type=merge --patch "$(cat /tmp/issuer.patch)"
+---
+{{- end }}

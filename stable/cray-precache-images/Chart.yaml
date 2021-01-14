@@ -1,0 +1,7 @@
+#
+# Copyright 2020 Hewlett Packard Enterprise Development LP
+#
+apiVersion: v1
+name: cray-precache-images
+description: Cache nexus and other images across worker nodes
+version: 0.2.0

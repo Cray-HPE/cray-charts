@@ -1,0 +1,12 @@
+# If the namespace is not cert-manager, changes
+# will be required to the upstream cert-manager service,
+# (dependency in cray-certmanager chart)
+
+namespace:
+   name: cert-manager
+   istioInjection: enabled
+
+kubectl:
+  image:
+    repository: dtr.dev.cray.com/loftsman/loftsman
+    tag: 0.5.1

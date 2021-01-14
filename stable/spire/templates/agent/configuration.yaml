@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spire.fullname" . }}-agent-config
+  labels:
+    app.kubernetes.io/name: {{ template "spire.name" . }}-agent
+    {{- include "spire.common-labels" . | nindent 4 }}
+data:
+  spire-agent.conf: |-
+    agent {
+      data_dir = "/run/spire"
+      log_level = "{{ .Values.agent.logLevel }}"
+      server_address = "spire-server"
+      server_port = "{{ .Values.server.port }}"
+      socket_path = "/run/spire/sockets/agent.sock"
+      trust_bundle_path = "/run/spire/bundle/bundle.crt"
+      trust_domain = "{{ .Values.trustDomain }}"
+    }
+
+    plugins {
+      NodeAttestor "k8s_sat" {
+        plugin_data {
+          cluster = "{{ .Values.trustDomain }}"
+        }
+      }
+
+      KeyManager "memory" {
+        plugin_data {}
+      }
+
+      WorkloadAttestor "k8s" {
+        plugin_data {
+          skip_kubelet_verification = true
+        }
+      }
+
+      WorkloadAttestor "unix" {
+          plugin_data {}
+      }
+    }

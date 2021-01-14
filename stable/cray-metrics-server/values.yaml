@@ -1,0 +1,13 @@
+#
+# Copyright 2020 Hewlett Packard Enterprise Development LP
+#
+# Default values for cray-metrics-server
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+imagesHost: "dtr.dev.cray.com"
+
+crayMetricsServer:
+  serverImage: "k8s.gcr.io/metrics-server:v0.3.6"

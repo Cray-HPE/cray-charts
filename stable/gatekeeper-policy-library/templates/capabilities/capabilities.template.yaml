@@ -1,0 +1,25 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8spspcapabilities
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPSPCapabilities
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            allowedCapabilities:
+              type: array
+              items:
+                type: string
+            requiredDropCapabilities:
+              type: array
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: {{ (.Files.Get "regos/capabilities/capabilities.src.rego") | toYaml | indent 6}}
+

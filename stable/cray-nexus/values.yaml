@@ -1,0 +1,155 @@
+# Copyright 2020, Cray Inc.
+# Cray Nexus Helm Chart
+
+# Base sonatype-nexus chart values
+# See https://github.com/Oteemo/charts/tree/master/charts/sonatype-nexus#configuration
+# for Nexus base chart configuration information
+sonatype-nexus:
+
+  # These overrides are very, very critical as it enables the "init-data"
+  # initContainer (see below) to be able to correctly mount the data volume
+  # in order to successfully initialize it.
+  nameOverride: nexus
+  fullnameOverride: nexus
+
+  deploymentStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 100%
+
+  nexus:
+    imageName: sonatype/nexus3
+    imageTag: 3.25.0
+    env:
+    # See https://help.sonatype.com/repomanager3/installation/system-requirements#SystemRequirements-Memory
+    - name: install4jAddVmParams
+      value: "-Xms4G -Xmx4G -XX:MaxDirectMemorySize=39158M -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
+    - name: NEXUS_SECURITY_RANDOMPASSWORD
+      value: "false"
+    resources:
+      requests:
+        cpu: "4"
+        memory: 12Gi
+      limits:
+        cpu: "12"
+        memory: 64Gi
+    podAnnotations:
+      sidecar.istio.io/proxyCPULimit: "8"
+      sidecar.istio.io/proxyMemoryLimit: "16Gi"
+
+  persistence:
+    enabled: true
+    storageClass: ceph-cephfs-external
+    accessMode: ReadWriteOnce
+    storageSize: 100Gi
+    annotations:
+      helm.sh/resource-policy: keep
+
+  deployment:
+    additionalVolumes:
+    - name: nexus-config
+      configMap:
+        name: nexus-config
+    initContainers:
+    - name: init-data
+      image: dtr.dev.cray.com/baseos/busybox:1
+      command:
+      - bin/sh
+      - -c
+      - |
+        if [ -z "$(ls -A /nexus-data/*)" ]; then
+            mkdir -p /nexus-data/etc
+            cp /nexus-config/nexus.properties /nexus-data/etc/nexus.properties
+            chown -Rv 200:200 /nexus-data
+            chmod -Rv u+rwX,go+rX,go-w /nexus-data
+        fi
+      volumeMounts:
+      - mountPath: /nexus-data
+        # See the above note regarding nameOverride and fullnameOverride
+        name: nexus-data
+      - mountPath: /nexus-config
+        name: nexus-config
+
+  service:
+    enabled: true
+    name: nexus
+    portName: nexus
+    port: 80
+    targetPort: 8081
+    ports:
+    - name: default-registry
+      port: 5003
+      targetPort: 5003
+    annotations:
+      metallb.universe.tf/address-pool: node-management
+
+  nexusProxy:
+    enabled: false
+
+  nexusBackup:
+    persistence:
+      enabled: false
+
+#additionalServices:  # For testing only when no keycloak is around
+#  # Do not use the key "service". It is reserved for the service included in
+#  # sonatype-nexus.
+#  can:
+#    enabled: true
+#    type: LoadBalancer
+#    annotations:
+#      external-dns.alpha.kubernetes.io/hostname: nexus.local
+#      metallb.universe.tf/address-pool: customer-access
+
+istio:
+  enabled: true
+  ingress:
+    gateway: services/services-gateway
+    hosts:
+      packages:
+        enabled: true
+        authority: packages.local
+        routes:
+        - port: 80
+          headers:
+            request:
+              add:
+                X-WEBAUTH-USER: admin
+              remove:
+              - Authorization
+      registry:
+        enabled: true
+        authority: registry.local
+        routes:
+        - port: 5003
+          headers:
+            request:
+              add:
+                X-WEBAUTH-USER: admin
+              remove:
+              - Authorization
+      # UI ingress should come from keycloak-gatekeeper
+      ui:
+        enabled: false
+        authority: nexus.local
+        routes:
+        - port: 80
+          headers:
+            request:
+              add:
+                X-WEBAUTH-USER: admin
+              remove:
+              - Authorization
+
+init:
+  enabled: true
+  image:
+    repository: dtr.dev.cray.com/cray/cray-nexus-setup
+    tag: 0.3.2
+    pullPolicy: IfNotPresent
+  adminCredentials:
+    enabled: false
+    secret: nexus-admin-credentials
+
+sealedSecrets: []
+

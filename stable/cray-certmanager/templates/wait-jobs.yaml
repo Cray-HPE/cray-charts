@@ -1,0 +1,29 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wait-for-{{ template "cray-certmanager.fullname" . }}-webhook
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: hook-succeeded,before-hook-creation
+spec:
+  template:
+    metadata:
+      name: wait-for-{{ template "cray-certmanager.fullname" . }}-webhook
+      labels:
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: Never
+      serviceAccountName: cray-{{ template "cray-certmanager.fullname" . }}-jobs
+      containers:
+        - name: wait-for-{{ template "cray-certmanager.fullname" . }}-webhook
+          image: "{{ .Values.kubectl.image.repository }}:{{ .Values.kubectl.image.tag }}"
+          command:
+            - '/bin/sh'
+          args:
+            - '-c'
+            - 'SLEEP=10; ITER=90; for i in `seq 1 $ITER`; do curl -ks https://{{ index .Values "cert-manager" "webhook" "serviceName" }}.{{ .Release.Namespace }}.svc; [ $? -eq 0 ] && break; echo "[$i] unable to connect to cert-manager webhook svc, sleeping $SLEEP"; sleep $SLEEP; done'

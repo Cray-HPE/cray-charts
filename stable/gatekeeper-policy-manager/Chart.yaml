@@ -1,0 +1,11 @@
+# (C) Copyright 2020 Hewlett Packard Enterprise Development LP.
+---
+apiVersion: v2
+name: gatekeeper-policy-manager
+description: A Helm chart for OPA Gatekeeper Policy Manager
+
+type: application
+
+version: 1.0.0
+appVersion: 0.4.0
+---

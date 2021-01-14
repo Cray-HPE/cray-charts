@@ -1,0 +1,41 @@
+---
+# 'wait' job that waits for all vault stateful set pods
+# to be ready given there can be some churn across vault 
+# cluster members as the cluster enters a steady state.
+#
+# If the 'size' of the vault CR is modified, the NEED_CNT
+# will also need to be updated.
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wait-for-cray-vault-pods
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: hook-succeeded,before-hook-creation
+spec:
+  template:
+    metadata:
+      name: wait-for-cray-vault-pods
+      labels:
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: Never
+      serviceAccountName: cray-vault-jobs
+      containers:
+        - name: wait
+          image: "{{ .Values.kubectl.image.repository }}:{{ .Values.kubectl.image.tag }}"
+          command:
+            - '/bin/sh'
+          args:
+            - '-c'
+            - 'SLEEP=10; ITER=90; NEED_CNT=3; for i in `seq 1 $ITER`; do READY_CNT=$(kubectl get po -n "$MY_POD_NAMESPACE" -o json | jq ".items[] | select(.metadata.name | match(\"cray-vault-[0-9]\")) | select(.status.phase == \"Running\") | .metadata.name" | wc -l); [ "$READY_CNT" -eq "$NEED_CNT" ] && break; echo "[Attempt:${i}] Waiting for vault pods to be RUNNING (${READY_CNT}/${NEED_CNT}), sleeping $SLEEP seconds."; sleep $SLEEP; done; echo "*** VAULT PODS RUNNING ***"'
+          env:
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace

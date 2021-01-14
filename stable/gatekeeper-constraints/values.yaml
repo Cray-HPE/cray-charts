@@ -1,0 +1,428 @@
+# all constraints are set to profile restricted
+# this value can be overridden in the loftsman manifest
+# profiles: restricted/restricted-transition/privileged/dryrun
+
+
+# CONSTRAINTS TO BE APPLIED
+
+excludedNamespaces:
+  - loftsman
+  - kube-system
+  - istio
+constraints:
+  allow-privilege-escalation-container:
+    profile: restricted
+    variables:
+      restricted:
+        enabled: true
+        enforcementAction: deny
+      restricted-transition:
+        enabled: false
+        enforcementAction: deny
+      privileged:
+        enabled: false
+        enforcementAction: deny
+      dryrun:
+        enabled: true
+        enforcementAction: dryrun
+  apparmor:
+    profile: restricted
+    variables:
+      restricted:
+        enabled: true
+        enforcementAction: deny
+      restricted-transition:
+        enabled: true
+        enforcementAction: deny
+      privileged:
+        enabled: false
+        enforcementAction: deny
+      dryrun:
+        enabled: true
+        enforcementAction: dryrun
+  capabilities:
+    profile: restricted
+    variables:
+      restricted:
+        enabled: true
+        enforcementAction: deny
+        requiredDropCapabilities:
+          - all
+        allowedCapabilities:
+      restricted-transition:
+        enabled: true
+        enforcementAction: deny
+        requiredDropCapabilities: []
+        allowedCapabilities:
+        - 'NET_ADMIN'
+        - 'NET_RAW'
+      privileged:
+        enforcementAction: deny
+        enabled: false
+      dryrun:
+        enabled: true
+        enforcementAction: dryrun
+        requiredDropCapabilities:
+          - all
+        allowedCapabilities:
+  flexvolume-drivers:
+    profile: restricted
+    variables:
+      restricted:
+        enforcementAction: deny
+        enabled: false
+        allowedFlexVolumes:
+        - driver: "example/lvm"
+        - driver: "example/cifs"
+      restricted-transition:
+        enforcementAction: deny
+        enabled: false
+        allowedFlexVolumes:
+        - driver: "example/lvm"
+        - driver: "example/cifs"
+      privileged:
+        enforcementAction: deny
+        enabled: false
+      dryrun:
+        enforcementAction: dryrun
+        enabled: false
+        allowedFlexVolumes:
+        - driver: "example/lvm"
+        - driver: "example/cifs"
+  forbidden-sysctls:
+    # - "*" # * may be used to forbid all sysctls
+    profile: restricted
+    variables:
+      restricted:
+        enforcementAction: deny
+        enabled: false
+        forbiddenSysctls:
+        - kernel.*
+      restricted-transition:
+        enforcementAction: deny
+        enabled: false
+        forbiddenSysctls:
+        - kernel.*
+      privileged:
+        enforcementAction: deny
+        enabled: false
+      dryrun:
+        enforcementAction: dryrun
+        enabled: false
+        forbiddenSysctls:
+        - kernel.*
+  fsgroup:
+    profile: restricted
+    variables:
+      restricted:
+        enforcementAction: deny
+        enabled: true
+        rule: "MustRunAs"
+        ranges:
+          - min: 1
+            max: 1000
+      restricted-transition:
+        enforcementAction: deny
+        enabled: true
+        rule: "MustRunAs"
+        ranges:
+          - min: 1
+            max: 1000
+      privileged:
+        enforcementAction: deny
+        enabled: false
+      dryrun:
+        enforcementAction: dryrun
+        enabled: true
+        rule: "MustRunAs"
+        ranges:
+          - min: 1
+            max: 1000
+  host-filesystem:
+    profile: restricted
+    variables:
+      restricted:
+        enforcementAction: deny
+        enabled: true
+        allowedHostPaths:
+        - pathPrefix: "/lustre"
+          readOnly: false # only allow read-only mounts
+      restricted-transition:
+        enforcementAction: deny
+        enabled: true
+        allowedHostPaths:
+        - pathPrefix: "/lustre"
+          readOnly: false # only allow read-only mounts
+        - pathPrefix: "/root/registry"
+          readOnly: false # only allow read-only mounts
+        - pathPrefix: "/lib/modules"
+          readOnly: false # only allow read-only mounts
+        # "/" is needed by cray-nmd and cray-cps-cm-pm.  cray-nmd is temporary
+        - pathPrefix: "/"
+          readOnly: false # only allow read-only mounts
+        - pathPrefix: "/var/lib/nfsroot/nmd"
+          readOnly: false # only allow read-only mounts
+        - pathPrefix: "/lus"
+          readOnly: false # only allow read-only mounts
+        - pathPrefix: "/var/tmp/cps-local"
+          readOnly: false # only allow read-only mounts
+      privileged:
+        enforcementAction: deny
+        enabled: false
+      dryrun:
+        enforcementAction: dryrun
+        enabled: true
+        allowedHostPaths:
+        - pathPrefix: "/lustre"
+          readOnly: false # only allow read-only mounts
+  host-namespaces:
+    profile: restricted
+    variables:
+      restricted:
+        enforcementAction: deny
+        enabled: true
+      restricted-transition:
+        enforcementAction: deny
+        enabled: true
+      privileged:
+        enforcementAction: deny
+        enabled: false
+      dryrun:
+        enforcementAction: dryrun
+        enabled: true
+  host-network-ports:
+    profile: restricted
+    variables:
+      restricted:
+        enforcementAction: deny
+        enabled: true
+      restricted-transition:
+        enforcementAction: deny
+        enabled: true
+      privileged:
+        enforcementAction: deny
+        enabled: true
+      dryrun:
+        enforcementAction: dryrun
+        enabled: true
+  privileged-containers:
+    profile: restricted
+    variables:
+      restricted:
+        enforcementAction: deny
+        enabled: true
+      restricted-transition:
+        enforcementAction: deny
+        enabled: true
+      privileged:
+        enforcementAction: deny
+        enabled: false
+      dryrun:
+        enforcementAction: dryrun
+        enabled: true
+  proc-mount:
+    profile: restricted
+    variables:
+      restricted:
+        enforcementAction: deny
+        enabled: false
+        procMount: "Default" #Unmasked
+      restricted-transition:
+        enforcementAction: deny
+        enabled: false
+        procMount: "Default" #Unmasked
+      privileged:
+        enforcementAction: deny
+        enabled: false
+        procMount: "Default" #Unmasked
+      dryrun:
+        enforcementAction: deny
+        enabled: false
+        procMount: "Default" #Unmasked
+  read-only-root-filesystem:
+    profile: restricted
+    variables:
+      restricted:
+        enforcementAction: deny
+        enabled: true
+      restricted-transition:
+        enforcementAction: deny
+        enabled: true
+      privileged:
+        enforcementAction: deny
+        enabled: false
+      dryrun:
+        enforcementAction: dryrun
+        enabled: true
+  seccomp:
+    profile: restricted
+    variables:
+      restricted:
+        enforcementAction: deny
+        enabled: false
+      restricted-transition:
+        enforcementAction: deny
+        enabled: false
+      privileged:
+        enforcementAction: deny
+        enabled: false
+      dryrun:
+        enforcementAction: dryrun
+        enabled: false
+  selinux:
+    profile: restricted
+    variables:
+      restricted:
+        enforcementAction: deny
+        enabled: true
+        allowedSELinuxOptions: []
+      restricted-transition:
+        enforcementAction: deny
+        enabled: true
+        allowedSELinuxOptions: []
+      privileged:
+        enforcementAction: deny
+        enabled: true
+        allowedSELinuxOptions: []
+      dryrun:
+        enforcementAction: dryrun
+        enabled: true
+        allowedSELinuxOptions: []
+  users:
+    profile: restricted
+    variables:
+      restricted:
+        enforcementAction: deny
+        enabled: true
+        runAsUser:
+          rule: MustRunAsNonRoot
+          ranges:
+            - min: 100
+              max: 200
+        runAsGroup:
+          rule: RunAsAny
+          ranges:
+            - min: 100
+              max: 200
+        supplementalGroups:
+          rule: MustRunAs #
+          ranges:
+            - min: 1
+              max: 65535
+        fsGroup:
+          rule: MustRunAs
+          ranges:
+            - min: 1
+              max: 65535
+      restricted-transition:
+        enforcementAction: deny
+        enabled: true
+        runAsUser:
+          rule: RunAsAny
+          ranges:
+            - min: 100
+              max: 200
+        runAsGroup:
+          rule: RunAsAny
+          ranges:
+            - min: 100
+              max: 200
+        supplementalGroups:
+          rule: MustRunAs #
+          ranges:
+            - min: 1
+              max: 65535
+        fsGroup:
+          rule: MustRunAs
+          ranges:
+            - min: 1
+              max: 65535
+      privileged:
+        enforcementAction: deny
+        enabled: true
+        runAsUser:
+          rule: RunAsAny
+          ranges:
+            - min: 100
+              max: 200
+        runAsGroup:
+          rule: RunAsAny
+          ranges:
+            - min: 100
+              max: 200
+        supplementalGroups:
+          rule: RunAsAny
+          ranges:
+            - min: 1
+              max: 65535
+        fsGroup:
+          rule: RunAsAny
+          ranges:
+            - min: 1
+              max: 65535
+      dryrun:
+        enforcementAction: dryrun
+        enabled: true
+        runAsUser:
+          rule: MustRunAsNonRoot
+          ranges:
+            - min: 100
+              max: 200
+        runAsGroup:
+          rule: RunAsAny
+          ranges:
+            - min: 100
+              max: 200
+        supplementalGroups:
+          rule: MustRunAs #
+          ranges:
+            - min: 1
+              max: 65535
+        fsGroup:
+          rule: MustRunAs
+          ranges:
+            - min: 1
+              max: 65535
+  volumes:
+    profile: restricted
+    variables:
+      restricted:
+        enforcementAction: deny
+        enabled: true
+        volumes:
+          - 'configMap'
+          - 'emptyDir'
+          - 'projected'
+          - 'secret'
+          - 'downwardAPI'
+          # Assume that persistentVolumes set up by the cluster admin are safe to use.
+          - 'persistentVolumeClaim'
+      restricted-transition:
+        enforcementAction: deny
+        enabled: true
+        volumes:
+          - 'configMap'
+          - 'emptyDir'
+          - 'projected'
+          - 'secret'
+          - 'downwardAPI'
+          # Assume that persistentVolumes set up by the cluster admin are safe to use.
+          - 'persistentVolumeClaim'
+          - 'hostPath'
+          - 'flexVolume'
+      privileged:
+        enforcementAction: deny
+        enabled: true
+        volumes:
+          - "*"
+      dryrun:
+        enforcementAction: dryrun
+        enabled: true
+        volumes:
+          - 'configMap'
+          - 'emptyDir'
+          - 'projected'
+          - 'secret'
+          - 'downwardAPI'
+          # Assume that persistentVolumes set up by the cluster admin are safe to use.
+          - 'persistentVolumeClaim'

@@ -1,0 +1,41 @@
+# RoleBinding for PSP with cray-postgres-operator ServiceAccount in services namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "cray-postgres-operator.fullname" . }}-psp
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: privileged-psp
+subjects:
+- kind: ServiceAccount
+  name: {{ template "cray-postgres-operator.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ template "cray-postgres-operator.fullname" . }}-jobs
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cray-{{ template "cray-postgres-operator.fullname" . }}-jobs-role
+rules:
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["get", "list"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cray-{{ template "cray-postgres-operator.fullname" . }}-jobs-role-binding
+subjects:
+- kind: ServiceAccount
+  name: {{ template "cray-postgres-operator.fullname" . }}-jobs
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cray-{{ template "cray-postgres-operator.fullname" . }}-jobs-role

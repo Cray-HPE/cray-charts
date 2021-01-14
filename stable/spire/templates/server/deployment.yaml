@@ -1,0 +1,165 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "spire.fullname" . }}-server
+  labels:
+    app.kubernetes.io/name: {{ template "spire.name" . }}-server
+    {{- include "spire.common-labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.server.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "spire.name" . }}-server
+  serviceName: {{ include "spire.name" . }}
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      {{- with .Values.server.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app.kubernetes.io/name: {{ include "spire.name" . }}-server
+    spec:
+      serviceAccountName: {{ include "spire.name" . }}-server
+      affinity:
+          podAntiAffinity:
+             preferredDuringSchedulingIgnoredDuringExecution:
+               - weight: 1
+                 podAffinityTerm:
+                   labelSelector:
+                     matchExpressions:
+                     - key: app
+                       operator: In
+                       values:
+                       - {{ include "spire.name" . }}-server
+                   topologyKey: kubernetes.io/hostname
+      initContainers:
+        - name: init
+          # This is a small image with wait-for-it, choose whatever image
+          # you prefer that waits for a service to be up. This image is built
+          # from https://github.com/lqhl/wait-for-it
+          image: "{{ include "spire.image-prefix" . }}{{ .Values.server.init.repository }}:{{ .Values.server.init.tag }}"
+          imagePullPolicy: {{ .Values.server.init.pullPolicy }}
+          args: ["-t", "30", "{{ include "spire.fullname" . }}-postgres:5432"]
+        - name: init2
+          image: "{{ include "spire.image-prefix" . }}{{ .Values.server.init2.repository }}:{{ .Values.server.init2.tag }}"
+          imagePullPolicy: {{ .Values.server.init2.pullPolicy }}
+          command: ['sh', '-c', 'sed -e "s/POSTGRESUSER/$(cat /run/spire/db-creds/username)/" -e "s/POSTGRESPASS/$(cat /run/spire/db-creds/password)/" < /run/spire/config/spire-server.conf > /run/spire/server/spire-server.conf']
+          volumeMounts:
+            - name: spire-config
+              mountPath: /run/spire/config
+              readOnly: true
+            - name: spire-server
+              mountPath: /run/spire/server
+              readOnly: false
+            - name: spire-db-creds
+              mountPath: /run/spire/db-creds
+              readOnly: true
+      containers:
+        - name: {{ include "spire.name" . }}-server
+          image: "{{ include "spire.image-prefix" . }}{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
+          imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+          args: ["-config", "/run/spire/server/spire-server.conf"]
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.server.port }}
+              protocol: TCP
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - "/bin/sh"
+                  - "/run/spire/config/register"
+          livenessProbe:
+            tcpSocket:
+              port: grpc
+          readinessProbe:
+            tcpSocket:
+              port: grpc
+          resources:
+          volumeMounts:
+            - name: spire-config
+              mountPath: /run/spire/config
+              readOnly: true
+            - name: spire-server
+              mountPath: /run/spire/server
+              readOnly: false
+            - name: spire-db-creds
+              mountPath: /run/spire/db-creds
+              readOnly: true
+            - name: spire-shared-socket
+              mountPath: /tmp
+              readOnly: false
+            - name: spire-ca-tls
+              mountPath: /run/spire/tls
+              readOnly: true
+            - name: spire-data
+              mountPath: /run/spire/data
+              readOnly: false
+        - name: {{ include "spire.name" . }}-registration-server
+          image: "{{ include "spire.image-prefix" . }}{{ .Values.server.registration.repository }}:{{ .Values.server.registration.tag }}"
+          imagePullPolicy: {{ .Values.server.registration.pullPolicy }}
+          env:
+            - name: SPIRE_DOMAIN
+              value: "{{ .Values.trustDomain }}"
+            - name: COMPUTE_ENTRY
+              value: "{{ .Values.server.tokenService.computeEntry }}"
+            - name: NCN_ENTRY
+              value: "{{ .Values.server.tokenService.ncnEntry }}"
+            - name: NCN_CLUSTER_ENTRY
+              value: ":{{ .Values.server.tokenService.ncnClusterEntry }}"
+            - name: COMPUTE_CLUSTER_ENTRY
+              value: ":{{ .Values.server.tokenService.computeClusterEntry }}"
+            - name: TTL
+              value: "{{ .Values.server.tokenService.tokenTTL }}"
+          imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+          volumeMounts:
+            - name: spire-shared-socket
+              mountPath: /tmp
+              readOnly: false
+            - name: spire-tokens-tls
+              mountPath: /tls
+              readOnly: true
+          ports:
+            - name: registration
+              containerPort: {{ .Values.server.registrationPort }}
+              protocol: TCP
+      shareProcessNamespace: true
+      volumes:
+        - name: spire-config
+          configMap:
+            name: spire-server-config
+        - name: spire-server
+          emptyDir: {}
+        - name: spire-shared-socket
+          hostPath:
+            path: /run/spire/vshastaio/sockets/shared
+            type: DirectoryOrCreate
+        - name: spire-db-creds
+          secret:
+            secretName: spire.{{ include "spire.fullname" . }}-postgres.credentials
+        - name: spire-tokens-tls
+          secret:
+            secretName: {{ include "spire.fullname" . }}-tokens-tls
+        - name: spire-ca-tls
+          secret:
+            secretName: spire.{{ .Release.Namespace }}.ca-tls
+  volumeClaimTemplates:
+    - metadata:
+        name: spire-data
+      spec:
+        accessModes:
+          {{- range .Values.server.persistentVolume.accessModes }}
+          - {{ . | quote }}
+          {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.server.persistentVolume.size | quote }}
+      {{- if .Values.server.persistentVolume.storageClass }}
+      {{- if (eq "-" .Values.server.persistentVolume.storageClass) }}
+        storageClassName: ""
+      {{- else }}
+        storageClassName: "{{ .Values.server.persistentVolume.storageClass }}"
+      {{- end }}
+      {{- end }}

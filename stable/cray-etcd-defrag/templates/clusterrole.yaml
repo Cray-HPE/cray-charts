@@ -1,0 +1,15 @@
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: etcd-defragger
+rules:
+  - apiGroups: ["etcd.database.coreos.com"]
+    resources: [etcdclusters]
+    verbs: [list, get]
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get]
+  - apiGroups: [""]
+    resources: [pods/exec]
+    verbs: [create]

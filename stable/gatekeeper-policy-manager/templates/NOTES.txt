@@ -1,0 +1,4 @@
+Gatekeeper Policy Manager can be accessed from a Web Browser as below:
+1. URL : https://opa-gpm.<external DNS of the system>
+   Ex. https://opa-gpm.vshasta.io
+2. Forward communication on Port 8080 and access GPM from browser using that port

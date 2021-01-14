@@ -1,0 +1,25 @@
+{{- $profile := index .Values "constraints" "host-network-ports" "profile" -}}
+{{- if index .Values "constraints" "host-network-ports" "variables" $profile "enabled" -}}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPHostNetworkingPorts
+metadata:
+  name: psp-host-network-ports
+spec:
+  enforcementAction: {{ index .Values "constraints" "host-network-ports" "variables" $profile "enforcementAction" }}
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    {{- if index .Values "excludedNamespaces"}}
+    excludedNamespaces:
+    {{- range index .Values "excludedNamespaces"}}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    # namespaces:
+    #   - "production"  parameters:
+  parameters:
+    hostNetwork: true
+    min: 80
+    max: 9000
+{{- end -}}

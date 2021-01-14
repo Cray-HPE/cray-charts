@@ -1,0 +1,36 @@
+# Default values for cray-node-problem-detector.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+node-problem-detector:
+  # These need to be set because kubernetes creates
+  # role bindings by default specifically for npd
+  nameOverride: node-problem-detector
+  fullnameOverride: node-problem-detector
+  serviceAccount:
+    name: node-problem-detector
+
+  image:
+    tag: v0.8.0
+
+  rbac:
+    create: true
+    pspEnabled: true
+
+  settings:
+    log_monitors:
+      - /config/kernel-monitor.json
+
+  resources:
+    requests:
+        memory: "64Mi"
+        cpu: "125m"
+    limits:
+      memory: "256Mi"
+      cpu: "3"
+
+  # Monitor master nodes as well
+  tolerations:
+  - key: "node-role.kubernetes.io/master"
+    operator: "Exists"
+    effect: "NoSchedule"

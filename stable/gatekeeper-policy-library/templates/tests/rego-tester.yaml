@@ -1,0 +1,31 @@
+{{- if index .Values.runTests -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Release.Name }}-rego-files"
+data:
+{{ (.Files.Glob "regos/**/**.rego").AsConfig | indent 4 }}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ .Release.Name }}-opa-rego-test"
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+  - name: "{{ .Release.Name }}-opa-rego-test"
+    image: openpolicyagent/opa
+    imagePullPolicy: IfNotPresent
+    command: ["/opa"]
+    args: ["test", "-v", '{{ include "gatekeeper-policy-library.regos" . }}']
+    volumeMounts:
+    - mountPath: '{{ .Values.mountpath }}'
+      name: "{{ .Release.Name }}-rego-files"
+      readOnly: true
+  volumes:
+  - name: "{{ .Release.Name }}-rego-files"
+    configMap:
+      name: "{{ .Release.Name }}-rego-files"
+  restartPolicy: Never
+{{- end -}}

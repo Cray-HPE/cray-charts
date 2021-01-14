@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cray-{{ template "cray-certmanager-init.fullname" . }}-jobs
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cray-{{ template "cray-certmanager-init.fullname" . }}-jobs-role
+rules:
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["get", "list"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cray-{{ template "cray-certmanager-init.fullname" . }}-jobs-role-binding
+subjects:
+- kind: ServiceAccount
+  name: cray-{{ template "cray-certmanager-init.fullname" . }}-jobs
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cray-{{ template "cray-certmanager-init.fullname" . }}-jobs-role

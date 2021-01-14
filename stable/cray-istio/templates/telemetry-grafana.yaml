@@ -1,0 +1,54 @@
+# See https://istio.io/docs/tasks/telemetry/gateways/
+{{- if .Values.istio.grafana.enabled }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: grafana
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: grafana
+    chart: grafana
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  gateways:
+  - {{ .Values.global.authGateway }}
+  hosts:
+  - {{ .Values.istio.grafana.externalAuthority }}
+  http:
+  - match:
+    - authority:
+        exact: {{ .Values.istio.grafana.externalAuthority }}
+    route:
+    - destination:
+        host: grafana
+        port:
+          number: 3000
+      headers:
+        request:
+          add:
+            # Sets the externally authenticated and authorized user to "admin"
+            # such that all valid users have admin access to Grafana.
+            X-WEBAUTH-USER: admin
+          remove:
+          # Remove "Authorization" header otherwise Grafana expects a valid
+          # API key.
+          - Authorization
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: grafana
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: grafana
+    chart: grafana
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  host: grafana
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+{{- end }}

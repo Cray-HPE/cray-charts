@@ -1,0 +1,3 @@
+Installed cert-manager as part of {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.

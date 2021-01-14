@@ -1,0 +1,23 @@
+{{- $profile := index .Values "constraints" "proc-mount" "profile" -}}
+{{- if index .Values "constraints" "proc-mount" "variables" $profile "enabled" -}}
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPProcMount
+metadata:
+  name: psp-proc-mount
+spec:
+  enforcementAction: {{ index .Values "constraints" "proc-mount" "variables" $profile "enforcementAction" }}
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    {{- if index .Values "excludedNamespaces"}}
+    excludedNamespaces:
+    {{- range index .Values "excludedNamespaces"}}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    # namespaces:
+    #   - "production"  parameters:
+  parameters:
+    procMount: "{{ index .Values "constraints" "proc-mount" "variables" $profile "procMount"}}"
+{{- end -}}

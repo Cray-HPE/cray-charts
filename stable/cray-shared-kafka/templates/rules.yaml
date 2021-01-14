@@ -1,0 +1,42 @@
+---
+apiVersion: "networking.istio.io/v1alpha3"
+kind: "DestinationRule"
+metadata:
+  name: {{ include "cray-shared-kafka.fullname" . }}-kafka-bootstrap
+  labels:
+    app: {{ template "cray-shared-kafka.name" . }}
+{{ include "cray-shared-kafka.labels" . | indent 4 }}
+spec:
+  host: {{ include "cray-shared-kafka.fullname" . }}-kafka-bootstrap
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+---
+apiVersion: "networking.istio.io/v1alpha3"
+kind: "DestinationRule"
+metadata:
+  name: {{ include "cray-shared-kafka.fullname" . }}-kafka-brokers
+  namespace: services
+  labels:
+    app: {{ template "cray-shared-kafka.name" . }}
+{{ include "cray-shared-kafka.labels" . | indent 4 }}
+spec:
+  host: {{ include "cray-shared-kafka.fullname" . }}-kafka-brokers
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+{{ range $k, $v := until (int .Values.kafka.replicas) }}
+---
+apiVersion: "networking.istio.io/v1alpha3"
+kind: "DestinationRule"
+metadata:
+  name:  {{ include "cray-shared-kafka.fullname" $ }}-kafka-{{ $k }}
+  labels:
+    app: {{ template "cray-shared-kafka.name" $ }}
+{{ include "cray-shared-kafka.labels" $ | indent 4 }}
+spec:
+  host: {{ include "cray-shared-kafka.fullname" $ }}-kafka-{{ $k }}
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+{{ end }}

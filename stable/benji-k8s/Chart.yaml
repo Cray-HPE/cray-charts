@@ -1,0 +1,7 @@
+#
+# Copyright 2020 Hewlett Packard Enterprise Development LP
+#
+apiVersion: v1
+description: Benji Backup for Kubernetes
+name: benji-k8s
+version: 0.5.0

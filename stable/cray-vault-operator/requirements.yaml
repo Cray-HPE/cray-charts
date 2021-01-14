@@ -1,0 +1,5 @@
+---
+dependencies:
+  - name: vault-operator
+    version: 1.8.0
+    repository: "@banzaicloud-stable"

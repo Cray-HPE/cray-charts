@@ -1,0 +1,20 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8spspseccomp
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPSPSeccomp
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            allowedProfiles:
+              type: array
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: {{ (.Files.Get "regos/seccomp/seccomp.src.rego") | toYaml | indent 6}}

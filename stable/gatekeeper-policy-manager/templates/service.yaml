@@ -1,0 +1,14 @@
+{{- /*
+(C) Copyright 2020 Hewlett Packard Enterprise Development LP.
+*/}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: gatekeeper-policy-manager
+spec:
+  selector:
+    app: gatekeeper-policy-manager
+  ports:
+  - port: 8080
+    targetPort: http

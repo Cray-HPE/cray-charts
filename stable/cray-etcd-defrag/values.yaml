@@ -1,0 +1,17 @@
+# Default values for cray-etcd-defrag
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+crayEtcdDefrag:
+  namespace: "operators"
+  defragCronSchedule: "0 0 * * *"
+  imageRegistry: "bis.local:5000"
+  imageVersion: "0.2.0-20200421212755_170bb37"
+
+crayHbtdEtcdDefrag:
+  defragCronSchedule: "0 */4 * * *"
+  etcdClusterName: "cray-hbtd-etcd"
+  ## This cronjob uses the same image as crayEtcdDefrag

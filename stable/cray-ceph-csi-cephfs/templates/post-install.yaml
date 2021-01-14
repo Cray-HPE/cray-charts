@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}"
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version | replace "+" "_" }}
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": post-install,post-upgrade,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+spec:
+  template:
+    metadata:
+      name: "{{ .Release.Name }}"
+      labels:
+        app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+        app.kubernetes.io/instance: {{ .Release.Name | quote }}
+        helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version | replace "+" "_" }}
+    spec:
+      serviceAccountName: ceph-csi-sa
+      restartPolicy: Never
+      containers:
+        - name: cephfs-post-install-job
+          image: {{ include "cray-ceph-csi-cephfs.image-prefix" . }}loftsman/docker-kubectl:0.2.0
+          command:
+            - bin/sh
+            - -c
+            - |
+              kubectl apply -f /apps/storage_classes/sc-cephfs.yaml
+          volumeMounts:
+            - name: cephfs-csi-sc-vol
+              mountPath: /apps/storage_classes/sc-cephfs.yaml
+              subPath: sc-cephfs.yaml
+
+# The config maps are created via cloud-init and the image.
+# This occurs on the storage node where all this information lives
+# and is required to be in place prior to the manifest.
+      volumes:
+        - name: cephfs-csi-sc-vol
+          configMap:
+            name: cephfs-csi-sc

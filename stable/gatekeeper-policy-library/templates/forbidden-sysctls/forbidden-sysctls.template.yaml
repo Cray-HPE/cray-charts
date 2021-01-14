@@ -1,0 +1,20 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8spspforbiddensysctls
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sPSPForbiddenSysctls
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            forbiddenSysctls:
+              type: array
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: {{ (.Files.Get "regos/forbidden-sysctls/forbidden-sysctls.src.rego") | toYaml | indent 6}}

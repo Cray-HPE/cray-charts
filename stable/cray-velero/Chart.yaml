@@ -1,0 +1,8 @@
+apiVersion: v1
+appVersion: 2.14.1
+description: Velero is an open source tool to safely backup and restore, perform disaster recovery, and migrate Kubernetes cluster resources and persistent volumes
+sources:
+- https://github.com/vmware-tanzu/velero
+- https://github.com/vmware-tanzu/helm-charts
+name: cray-velero
+version: 0.1.0
