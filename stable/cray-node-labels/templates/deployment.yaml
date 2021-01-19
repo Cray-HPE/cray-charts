@@ -1,0 +1,51 @@
+{{- /*
+Copyright 2021 Hewlett Packard Enterprise Development LP
+*/ -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cray-node-labels.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "cray-node-labels.name" . }}
+spec:
+  replicas: {{ .Values.numReplicas }}
+  strategy:
+    {{- .Values.strategy | toYaml | nindent 4}}
+  selector:	
+    matchLabels:	
+      app.kubernetes.io/name: {{ include "cray-node-labels.fullname" . }}	
+      app.kubernetes.io/instance: {{ .Release.Name }}	
+      app.kubernetes.io/managed-by: {{ .Release.Service }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "cray-node-labels.fullname" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+    spec:
+      serviceAccountName: "cray-node-labels"
+      affinity:	
+        podAntiAffinity:	
+          requiredDuringSchedulingIgnoredDuringExecution:	
+          - labelSelector:	
+              matchExpressions:	
+              - key: app.kubernetes.io/name	
+                operator: In	
+                values: ["{{ include "cray-node-labels.fullname" . }}"]	
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: node-images 
+        image: {{ include "cray-node-labels.image-prefix" . }}istio/kubectl:{{ .Values.kubectlImageVersion }}
+        command:
+           - /bin/sh
+           - -c
+           - "while true; do echo $(date -u); /scripts/set_node_labels.sh; echo ''; sleep $(cat /scripts/refresh_seconds); done"
+        volumeMounts:
+        - name: node-labels-volume
+          mountPath: /scripts
+      volumes:
+      - name: node-labels-volume
+        configMap:
+          name: cray-node-labels
+          defaultMode: 0744

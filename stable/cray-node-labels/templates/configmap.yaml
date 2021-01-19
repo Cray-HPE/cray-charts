@@ -1,0 +1,17 @@
+{{- /*
+Copyright 2021 Hewlett Packard Enterprise Development LP
+*/ -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cray-node-labels
+data:
+  node_labels: |-
+    {{ .Values.nodeLabels | toYaml | nindent 4 }}
+
+  refresh_seconds: |
+    {{ .Values.refreshSeconds }}
+
+  set_node_labels.sh: |-
+    {{- .Files.Get "files/set_node_labels.sh" | nindent 4 }}

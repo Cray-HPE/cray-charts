@@ -1,0 +1,7 @@
+#
+# Copyright 2021 Hewlett Packard Enterprise Development LP
+#
+apiVersion: v1
+name: cray-node-labels
+description: Create labels for kubernetes nodes
+version: 0.1.0

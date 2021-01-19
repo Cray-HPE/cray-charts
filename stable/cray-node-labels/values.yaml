@@ -1,0 +1,25 @@
+#
+# Copyright 2021 Hewlett Packard Enterprise Development LP
+#
+
+#
+# These can be overridden in customizations.yaml
+#
+# <node1>:<key>=<value>:<key2>=<value2>...
+# <node2>:<key>=<value>:<key2>=<value2>...
+#
+nodeLabels:
+  - ncn-m001:no_external_access=False
+
+#
+# Amount of time in seconds between wake-ups to check for new labels to set
+#
+refreshSeconds: "3600"
+numReplicas: "1"
+nameOverride: ""
+fullnameOverride: ""
+imagesHost: "dtr.dev.cray.com"
+kubectlImageVersion: "1.5.4"
+namespace: "services"
+strategy:
+    type: Recreate
