@@ -1,6 +1,3 @@
-{{- /*
-Copyright 2020 Hewlett Packard Enterprise Development LP
-*/ -}}
 {{- range .Values.benji.crontab }}
 
 ---
@@ -35,7 +32,6 @@ spec:
             app.kubernetes.io/name: {{ include "benji.name" $ }}
             app.kubernetes.io/instance: {{ $.Release.Name }}
             app.kubernetes.io/component: cronjob-{{ .name }}
-            cronjob-name: {{ tuple $ .name | include "benji.fullname" }}
         spec:
           serviceAccountName: {{ tuple $ "" | include "benji.fullname" }}
           dnsPolicy: ClusterFirstWithHostNet
@@ -76,16 +72,13 @@ spec:
               hostPath:
                 path: /usr/share/zoneinfo/{{ $.Values.timeZone }}
             {{ toYaml $.Values.benji.volumes | nindent 12 }}
-    {{- with $.Values.benji.nodeSelector -}}
-          nodeSelector:
-            {{ toYaml . | nindent 12 }}
+    {{- with $.Values.benji.nodeSelector }}
+          nodeSelector: {{ toYaml . | nindent 12 }}
     {{- end -}}
-    {{- with $.Values.benji.affinity -}}
-          affinity:
-            {{ toYaml . | nindent 12 }}
+    {{- with $.Values.benji.affinity }}
+          affinity: {{ toYaml . | nindent 12 }}
     {{- end -}}
-    {{- with $.Values.benji.tolerations -}}
-          tolerations:
-            {{ toYaml . | nindent 12 }}
+    {{- with $.Values.benji.tolerations }}
+          tolerations: {{ toYaml . | nindent 12 }}
     {{- end -}}
 {{- end -}}

@@ -1,9 +1,9 @@
 dependencies:
 - name: postgresql
-  repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 7.7.2
+  repository: https://charts.bitnami.com/bitnami
+  version: 10.1.1
 - name: prometheus-pushgateway
-  repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.2.6
-digest: sha256:e4b49da8861fc1e37692e891b5474c50cfd9ee5190d24b7e6c5a076b6b09793f
-generated: "2020-09-10T22:07:20.2191228Z"
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 1.5.0
+digest: sha256:6364ce895945faf2fd2d295f3460670e8cdfc7fc00776b8cd3ca966c56aa6f7b
+generated: "2021-01-19T13:05:48.532236-05:00"

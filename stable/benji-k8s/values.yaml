@@ -34,7 +34,7 @@ benji:
         configuration:
           awsAccessKeyIdFile: /etc/ceph_creds/access_key
           awsSecretAccessKeyFile: /etc/ceph_creds/secret_key
-          endpointUrl: http://rgw.local:8080
+          endpointUrl: https://rgw-vip.nmn
           useSsl: false
           bucketName: benji-backups
           disableEncodingType: false
