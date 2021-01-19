@@ -675,7 +675,8 @@ istio:
       autoscaleEnabled: true
       autoscaleMin: 3
       autoscaleMax: 6
-      externalTrafficPolicy: "Local"
+      externalTrafficPolicy: "Cluster"
+      localExternalTrafficPolicy: "Local"
       resources:
         requests:
           cpu: 500m
