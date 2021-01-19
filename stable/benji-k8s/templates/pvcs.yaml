@@ -3,6 +3,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: benji-db-claim
+  namespace: backups
 spec:
   storageClassName: ceph-cephfs-external
   accessModes:

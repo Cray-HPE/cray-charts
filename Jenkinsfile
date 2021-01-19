@@ -27,7 +27,6 @@ pipeline {
 
     stage('Push to github') {
         when { allOf {
-            # Regex can be changed, as exampled above, to only run specific branches instead of all
             expression { BRANCH_NAME ==~ /.*/ }
         }}
         steps {

@@ -67,6 +67,11 @@ spec:
           hostPath:
             path: /usr/share/zoneinfo/{{ .Values.timeZone }}
         {{ toYaml .Values.benji.volumes | nindent 8 }}
+      persistentVolumeClaimSpec:
+            {{- if .Values.storageClass }}
+            storageClass: {{ .Values.storageClass }}
+            {{- end }}
+            accessModes:
 {{- with .Values.benji.nodeSelector }}
       nodeSelector:
         {{ toYaml . | nindent 8 }}
