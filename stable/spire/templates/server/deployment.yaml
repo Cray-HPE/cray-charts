@@ -108,9 +108,9 @@ spec:
             - name: NCN_ENTRY
               value: "{{ .Values.server.tokenService.ncnEntry }}"
             - name: NCN_CLUSTER_ENTRY
-              value: ":{{ .Values.server.tokenService.ncnClusterEntry }}"
+              value: "{{ .Values.server.tokenService.ncnClusterEntry }}"
             - name: COMPUTE_CLUSTER_ENTRY
-              value: ":{{ .Values.server.tokenService.computeClusterEntry }}"
+              value: "{{ .Values.server.tokenService.computeClusterEntry }}"
             - name: TTL
               value: "{{ .Values.server.tokenService.tokenTTL }}"
           imagePullPolicy: {{ .Values.server.image.pullPolicy }}
