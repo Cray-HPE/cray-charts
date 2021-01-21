@@ -170,4 +170,45 @@ data:
       -selector unix:gid:0 \
       -selector unix:path:/usr/bin/cfs-state-reporter-spire-agent
 
+    create \
+      -parentID spiffe://{{ .Values.trustDomain }}/ncn \
+      -spiffeID spiffe://{{ .Values.trustDomain }}/ncn/workload/dvs-map \
+      -selector unix:uid:0 \
+      -selector unix:gid:0 \
+      -selector unix:path:/usr/bin/dvs-map-spire-agent
+
+    create \
+      -parentID spiffe://{{ .Values.trustDomain }}/compute \
+      -spiffeID spiffe://{{ .Values.trustDomain }}/compute/workload/dvs-map \
+      -selector unix:uid:0 \
+      -selector unix:gid:0 \
+      -selector unix:path:/usr/bin/dvs-map-spire-agent
+
+    create \
+      -parentID spiffe://{{ .Values.trustDomain }}/ncn \
+      -spiffeID spiffe://{{ .Values.trustDomain }}/ncn/workload/dvs-hmi \
+      -selector unix:uid:0 \
+      -selector unix:gid:0 \
+      -selector unix:path:/usr/bin/dvs-hmi-spire-agent
+
+    create \
+      -parentID spiffe://{{ .Values.trustDomain }}/compute \
+      -spiffeID spiffe://{{ .Values.trustDomain }}/compute/workload/dvs-hmi \
+      -selector unix:uid:0 \
+      -selector unix:gid:0 \
+      -selector unix:path:/usr/bin/dvs-hmi-spire-agent
+
+    create \
+      -parentID spiffe://{{ .Values.trustDomain }}/ncn \
+      -spiffeID spiffe://{{ .Values.trustDomain }}/ncn/workload/dvs-get-comp \
+      -selector unix:uid:0 \
+      -selector unix:gid:0 \
+      -selector unix:path:/usr/bin/dvs-get-comp-spire-agent
+
+    create \
+      -parentID spiffe://{{ .Values.trustDomain }}/compute \
+      -spiffeID spiffe://{{ .Values.trustDomain }}/compute/workload/dvs-get-comp \
+      -selector unix:uid:0 \
+      -selector unix:gid:0 \
+
     exit 0
