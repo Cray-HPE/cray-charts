@@ -2,7 +2,8 @@ apiVersion: "vault.banzaicloud.com/v1alpha1"
 kind: "Vault"
 metadata:
   name: "{{ include "cray-vault.name" . }}"
-  vault_cr: "{{ include "cray-vault.name" . }}"
+  labels:
+    vault_cr: "{{ include "cray-vault.name" . }}"
 spec:
   size: {{ .Values.vault.size }}
   image: "{{ include "cray-vault.image-prefix" . }}{{ .Values.vault.image }}"
