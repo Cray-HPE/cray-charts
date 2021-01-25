@@ -37,8 +37,7 @@ data:
     cray-bss.services.86400.7.
     cray-crus.services.86400.7.
     cray-externaldns.services.86400.7.
-    cray-fw-update.services.86400.7.
-    slingshot-controllers.services.3600.24.
+    cray-fas.services.86400.7.
 
   create_periodic_backups.sh: |-
     {{- .Files.Get "files/create_periodic_backups.sh" | nindent 4 }}
