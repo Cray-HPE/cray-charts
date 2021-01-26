@@ -6,8 +6,8 @@ nameOverride: ""
 fullnameOverride: ""
 
 crayEtcdBackup:
-  imageRegistry: "bis.local:5000"
-  kubectlImageVersion: "0.2.0-20200421212755_170bb37"
+  imageRegistry: "dtr.dev.cray.com"
+  kubectlImageVersion: "0.2.0"
   boto3ImageVersion: "1.8"
   periodicCronSchedule: "0 * * * *"
   replicas: 2 # Two pods so we are resillient to one worker dropping

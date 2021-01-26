@@ -8,8 +8,8 @@ fullnameOverride: ""
 crayEtcdDefrag:
   namespace: "operators"
   defragCronSchedule: "0 0 * * *"
-  imageRegistry: "bis.local:5000"
-  imageVersion: "0.2.0-20200421212755_170bb37"
+  imageRegistry: "dtr.dev.cray.com"
+  imageVersion: "0.2.0"
 
 crayHbtdEtcdDefrag:
   defragCronSchedule: "0 */4 * * *"
