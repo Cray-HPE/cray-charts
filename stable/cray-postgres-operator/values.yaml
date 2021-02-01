@@ -12,14 +12,14 @@ postgres-operator-ui:
   image:
     registry: dtr.dev.cray.com
     repository: cray/postgres-operator-ui
-    tag: 1.7.0-20201209194241_9ce2ecd
+    tag: 1.7.1-20210205210646_267a5a6
     pullPolicy: "IfNotPresent"
 
 postgres-operator:
   image:
     registry: dtr.dev.cray.com
     repository: cray/postgres-operator
-    tag: 1.7.0-20201209194857_9ce2ecd
+    tag: 1.7.1-20210205210646_267a5a6
     pullPolicy: "IfNotPresent"
 
   # Deploy "postgres_exporter" as sidecar container to "postgres"
