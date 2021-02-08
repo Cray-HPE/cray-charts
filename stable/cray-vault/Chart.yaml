@@ -3,4 +3,4 @@ appVersion: 1.5.5
 name: cray-vault
 description: Cray Vault for secure secret stores
 home: "cloud/cray-charts"
-version: 1.1.3
+version: 1.1.4
