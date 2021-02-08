@@ -2,7 +2,6 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 nameOverride: ""
-imagesHost: "sms.local:5000"
 
 global:
   chart:
@@ -10,8 +9,8 @@ global:
     version: "" # set at deploy time automatically, no need to ever set explicitly
 
 image:
-  repository: cray/cray-spire-intermediate
-  tag: 0.1.1-20200805202257_ff71a42
+  repository: dtr.dev.cray.com/cray/cray-spire-intermediate
+  tag: 0.1.1
 
 namespaces:
   - spire

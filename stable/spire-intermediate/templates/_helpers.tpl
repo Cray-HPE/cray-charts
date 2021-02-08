@@ -71,14 +71,3 @@ Convenient way to refer to the boot-services shared IP inside or outside a parti
 {{- printf "boot-services" -}}
 {{- end -}}
 {{- end -}}
-
-{{/*
-Get an image prefix
-*/}}
-{{- define "spire-intermediate.image-prefix" -}}
-{{- if .Values.imagesHost -}}
-{{- printf "%s/" .Values.imagesHost -}}
-{{- else -}}
-{{- printf "" -}}
-{{- end -}}
-{{- end -}}
