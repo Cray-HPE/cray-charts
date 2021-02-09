@@ -28,6 +28,6 @@ Future work in this area may include the use of a CSI volume snapshotter compati
 
 https://velero.io/docs/v1.0.0/restic/#limitations
 
-Current implmentation uses an HTTP transport to Ceph RGW, as Ceph RGW doesn't have an HTTPS interface that has an enrolled platform certificate (cannot import trusted CAs via install). While Velero supports TLS without 'validation', Restic does not. Ultimately, this will be remedied once Ceph RGW is enrolled in platform PKI and platform CAs can be integrated into the deployment for this purpose.
+Current implementation uses an HTTP transport to Ceph RGW, as Ceph RGW doesn't have an HTTPS interface that has an enrolled platform certificate (cannot import trusted CAs via install). While Velero supports TLS without 'validation', Restic does not. Ultimately, this will be remedied once Ceph RGW is enrolled in platform PKI and platform CAs can be integrated into the deployment for this purpose.
 
 If using on vShasta, you may have to either update the cray-s3 service to point to storage nodes (and possibly add a DNS entry), or otherwise update the BSL config ```s3Url``` with a usable S3 endpoint (e.g., ```kubectl -n velero edit bsl default```). 
