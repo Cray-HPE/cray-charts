@@ -6,13 +6,13 @@ kubectl:
 
 velero:
   image:
-    repository: dtr.dev.cray.com/velero/velero
+    repository: docker.io/velero/velero
     tag: v1.5.2
   
   initContainers: # Cannot patch in partial lists to upstream chart
     # AWS plugin for velero
     - name: velero-plugin-for-aws
-      image:  dtr.dev.cray.com/velero/velero-plugin-for-aws:v1.1.0
+      image:  docker.io/velero/velero-plugin-for-aws:v1.1.0
       imagePullPolicy: IfNotPresent
       volumeMounts:
         - mountPath: /target
@@ -64,7 +64,7 @@ velero:
         velero.io/restic: RestoreItemAction
       data:
         # Will use same tag as main velero app, if omitted
-        image: dtr.dev.cray.com/velero/velero-restic-restore-helper
+        image: docker.io/velero/velero-restic-restore-helper
 
   # Use restic for pod volume backups
   # note limitations here: https://velero.io/docs/v1.0.0/restic/#limitations
