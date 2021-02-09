@@ -20,9 +20,9 @@ allowedAuthNamespaces:
 vault:
   ui: false
   size: 3
-  image: "library/vault:1.5.5"
-  bankVaultsImage: "banzaicloud/bank-vaults:1.8.0"
-  statsdImage: "prom/statsd-exporter:v0.18.0"
+  image: "dtr.dev.cray.com/library/vault:1.5.5"
+  bankVaultsImage: "dtr.dev.cray.com/banzaicloud/bank-vaults:1.8.0"
+  statsdImage: "dtr.dev.cray.com/prom/statsd-exporter:v0.18.0"
   veleroFsfreezeImage: "dtr.dev.cray.com/baseos/ubuntu:bionic"
   antiaffinity:
     enabled: true
