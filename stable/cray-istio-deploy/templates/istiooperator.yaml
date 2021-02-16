@@ -18,9 +18,9 @@ spec:
       k8s:
         resources:
 {{ toYaml .Values.istio.prometheus.resources | indent 10 }}
-    tracing:
-{{ toYaml .Values.istio.tracing | indent 6 }}
     kiali:
-{{ toYaml .Values.istio.kiali | indent 6 }}
+      enabled: true
+    tracing:
+      enabled: true
     grafana:
-{{ toYaml .Values.istio.grafana | indent 6 }}
+      enabled: true
