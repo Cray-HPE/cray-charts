@@ -27,3 +27,15 @@ a few changes:
 
 2) Fixed issue in the upstream chart not actually using values for
   `gateways.*.externalIPs` in the gateway service.
+
+Istio/envoy 1.5.4 and 1.6.13 have have a transfer encoding validation bug that
+breaks APIs that use 'chunked' encoding.  This is not yet fixed in 1.6.13, so
+this helm chart has a workaround that modifies a runtime setting by exec'ing
+into istio-proxy pods via a cronjob and modifies the runtime config.  See
+https://github.com/istio/istio/issues/23020 and
+https://github.com/envoyproxy/envoy/issues/10041 for more information.  Once
+we upgrade to a version of istio that contains this fix, we can remove the
+following from this chart:
+
+  - files/modify_runtime.sh
+  - templates/te-bug-workaround.yaml

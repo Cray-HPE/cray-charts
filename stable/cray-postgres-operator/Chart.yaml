@@ -3,7 +3,7 @@
 #
 apiVersion: v1
 name: cray-postgres-operator
-version: 0.10.0
+version: 0.10.1
 appVersion: "852f292" # the postgres-operator repo sha
 home: "cloud/cray-charts"
 description: Cray-specific parent chart of github.com/zalando/postgres-operator

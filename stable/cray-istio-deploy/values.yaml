@@ -1,6 +1,6 @@
 
 hub: dtr.dev.cray.com/cray
-tag: 1.6.13
+tag: 1.6.13-cray1-20210202183713_549528c5da
 
 kubectl:
   image:
@@ -9,7 +9,7 @@ kubectl:
 
 pilot:
   hub: dtr.dev.cray.com/cray
-  tag: 1.6.13-20201124212805_2d14808f51
+  tag: 1.6.13-cray1-20210202183713_549528c5da
 
 istio:
 

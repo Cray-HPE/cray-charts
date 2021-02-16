@@ -16,10 +16,19 @@ spec:
           image: "{{ include "spire.image-prefix" . }}{{ .Values.bss.curl.repository }}:{{ .Values.bss.curl.tag }}"
           command:
             - '/bin/sh'
-          args:
             - '-x'
             - '-c'
-            - 'curl -v --request PATCH -H "Content-Type: application/json" -d @/conf/bss-update.json "$ENDPOINT"'
+          args:
+            - 'retries=1;
+               while ! curl -fv --request PATCH -H "Content-Type: application/json" -d @/conf/bss-update.json "$ENDPOINT";
+                 do if [ $retries -gt 9 ];
+                   then echo "Failed to add spire entry to BSS";
+                   exit 1;
+                 fi;
+                 echo "Failed to patch BSS. Retrying ($retries/10)";
+                 retries=$(expr $retries + 1);
+                 sleep 30;
+               done'
           env:
             - name: ENDPOINT
               value: "{{ .Values.bss.endpoint }}"

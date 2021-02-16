@@ -42,7 +42,7 @@ sonatype-nexus:
     enabled: true
     storageClass: ceph-cephfs-external
     accessMode: ReadWriteOnce
-    storageSize: 100Gi
+    storageSize: 1000Gi
     annotations:
       helm.sh/resource-policy: keep
 

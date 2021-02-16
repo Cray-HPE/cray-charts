@@ -1,22 +1,70 @@
 
 # Used for Helm Hooks
 kubectl:
-  image: gcr.io/vshasta-cray/loftsman/loftsman
+  image: dtr.dev.cray.com/loftsman/loftsman
   tag: 0.5.1
 
 velero:
   image:
-    repository: velero/velero
+    repository: docker.io/velero/velero
     tag: v1.5.2
   
-  initContainers:
+  initContainers: # Cannot patch in partial lists to upstream chart
     # AWS plugin for velero
     - name: velero-plugin-for-aws
-      image: velero/velero-plugin-for-aws:v1.1.0
+      image:  docker.io/velero/velero-plugin-for-aws:v1.1.0
       imagePullPolicy: IfNotPresent
       volumeMounts:
         - mountPath: /target
           name: plugins
+    # Init container to convert Storage IAM Secrets to Standard S3 Format
+    - name: convert-credentials
+      image:  dtr.dev.cray.com/loftsman/loftsman:0.5.1
+      command: 
+      - 'sh'
+      - '-c'
+      - 'printf "[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$S3_ACCESS_KEY_ID" "$S3_SECRET_KEY" > /tmp/.secret && kubectl -n "$MY_POD_NAMESPACE" create secret generic velero-iam --from-file=cloud=/tmp/.secret --dry-run -o  yaml | kubectl apply -f -'
+      env:
+      - name: MY_POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.namespace
+      - name: S3_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: velero-s3-credentials
+            key: access_key
+      - name: S3_SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: velero-s3-credentials
+            key: secret_key
+    # Init container to update backup storage location from Storage IAM Secrets
+    - name: update-bsl
+      image: dtr.dev.cray.com/loftsman/loftsman:0.5.1
+      command: 
+      - 'sh'
+      - '-c'
+      - 'kubectl -n "$MY_POD_NAMESPACE" patch backupstoragelocation default --type=json -p="[{\"op\" : \"replace\",\"path\":\"/spec/config/s3Url\", \"value\" : \"$HTTP_S3_ENDPOINT\"}]"'
+      env:
+      - name: MY_POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.namespace
+      - name: HTTP_S3_ENDPOINT
+        valueFrom:
+          secretKeyRef:
+            name: velero-s3-credentials
+            key: http_s3_endpoint
+
+  configMaps:
+    restic-restore-action-config: # required to override image...
+      labels:
+        velero.io/plugin-config: ""
+        velero.io/restic: RestoreItemAction
+      data:
+        # Will use same tag as main velero app, if omitted
+        image: docker.io/velero/velero-restic-restore-helper
 
   # Use restic for pod volume backups
   # note limitations here: https://velero.io/docs/v1.0.0/restic/#limitations
@@ -49,4 +97,4 @@ velero:
         #
         # https://github.com/vmware-tanzu/velero/issues/2335
         # https://github.com/restic/restic/issues/2656
-        s3Url: http://ncn-s001-04fe9b8d:8080
+        s3Url: 'http://rgw-vip.nmn'

@@ -16,11 +16,3 @@ Create chart name and version as used by the chart label.
 {{- define "cray-vault.etcdName" -}}
 {{- printf "%s-etcd" (include "cray-vault.name" .) -}}
 {{- end -}}
-
-{{- define "cray-vault.image-prefix" -}}
-{{- if .Values.imagesHost -}}
-{{- printf "%s/" .Values.imagesHost -}}
-{{- else -}}
-{{- printf "" -}}
-{{- end -}}
-{{- end -}}

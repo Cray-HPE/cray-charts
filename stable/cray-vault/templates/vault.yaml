@@ -6,16 +6,16 @@ metadata:
     vault_cr: "{{ include "cray-vault.name" . }}"
 spec:
   size: {{ .Values.vault.size }}
-  image: "{{ include "cray-vault.image-prefix" . }}{{ .Values.vault.image }}"
-  bankVaultsImage: "{{ include "cray-vault.image-prefix" . }}{{ .Values.vault.bankVaultsImage }}"
-  statsdImage: "{{ include "cray-vault.image-prefix" . }}{{ .Values.vault.statsdImage }}"
+  image: "{{ .Values.vault.image }}"
+  bankVaultsImage: "{{ .Values.vault.bankVaultsImage }}"
+  statsdImage: "{{ .Values.vault.statsdImage }}"
 
   # Velero backup
 
   vaultAnnotations:
     backup.velero.io/backup-volumes: vault-raft
   veleroEnabled: true
-  veleroFsfreezeImage: "{{ include "cray-vault.image-prefix" . }}{{ .Values.vault.veleroFsfreezeImage }}"
+  veleroFsfreezeImage: "{{ .Values.vault.veleroFsfreezeImage }}"
   
   {{- if .Values.vault.antiaffinity.enabled }}
   podAntiAffinity: {{ .Values.vault.antiaffinity.topologyKey }}

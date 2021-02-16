@@ -16,7 +16,7 @@ spec:
       serviceAccountName: {{ include "spire-intermediate.fullname" . }}
       containers:
       - name: {{ include "spire-intermediate.fullname" . }}
-        image: "{{ include "spire-intermediate.image-prefix" . }}{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
           - name: VAULT_TOKEN

@@ -55,7 +55,7 @@ spec:
             - name: etcd-backup-restore-aws-config
               mountPath: /conf
         - name: boto3
-          image: "{{ .Values.crayEtcdBackup.imageRegistry }}/ombu/boto3:{{ .Values.crayEtcdBackup.boto3ImageVersion }}"
+          image: "{{ .Values.crayEtcdBackup.imageRegistry }}/demisto/boto3py3:{{ .Values.crayEtcdBackup.boto3ImageVersion }}"
           command:
             - /bin/sh
             - -c

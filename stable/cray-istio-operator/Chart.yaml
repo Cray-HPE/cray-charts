@@ -2,4 +2,4 @@ apiVersion: v1
 appVersion: 1.6.13
 name: cray-istio-operator
 description: Deploys the istio operator for Cray systems.
-version: 1.19.0
+version: 1.19.1
