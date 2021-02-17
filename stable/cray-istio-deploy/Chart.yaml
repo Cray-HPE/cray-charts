@@ -2,4 +2,4 @@ apiVersion: v1
 appVersion: 1.6.13
 name: cray-istio-deploy
 description: Creates the IstioOperator instance that deploys the Istio control plane.
-version: 1.19.3
+version: 1.19.4

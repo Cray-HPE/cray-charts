@@ -14,13 +14,17 @@ spec:
       tag: {{ .Values.pilot.tag }}
   addonComponents:
     prometheus:
-      enabled: true
-      k8s:
-        resources:
-{{ toYaml .Values.istio.prometheus.resources | indent 10 }}
+{{ toYaml .Values.addonComponents.prometheus | indent 6 }}
     kiali:
       enabled: true
     tracing:
       enabled: true
     grafana:
       enabled: true
+  values:
+    kiali:
+{{ toYaml .Values.istio.kiali | indent 6 }}
+    prometheus:
+{{ toYaml .Values.istio.prometheus | indent 6 }}
+    grafana:
+{{ toYaml .Values.istio.grafana | indent 6 }}

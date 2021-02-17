@@ -11,6 +11,18 @@ pilot:
   hub: dtr.dev.cray.com/cray
   tag: 1.6.13-cray1-20210202183713_549528c5da
 
+addonComponents:
+  prometheus:
+    enabled: true
+    k8s:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 5Gi
+        limits:
+          cpu: "2"
+          memory: 8Gi
+
 istio:
 
   global:
@@ -51,26 +63,11 @@ istio:
         ISTIO_META_IDLE_TIMEOUT: 10m
 
   prometheus:
-    enabled: true
-    hub: quay.io/prometheus
-    image: prometheus
-    tag: v2.15.2
-    resources:
-      requests:
-        cpu: 10m
-        memory: 5Gi
-      limits:
-        cpu: "2"
-        memory: 8Gi
     retention: 4h
     security:
       enabled: false
 
   grafana:
-    enabled: true
-    image:
-      repository: grafana/grafana
-      tag: 6.7.4
     security:
       enabled: false
 
@@ -82,7 +79,6 @@ istio:
         max_traces: 50000
 
   kiali:
-    enabled: true
     dashboard:
       auth:
         strategy: anonymous
