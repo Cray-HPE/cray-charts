@@ -6,11 +6,11 @@ global:
     name: "" # set at deploy time automatically, no need to ever set explicitly
     version: "" # set at deploy time automatically, no need to ever set explicitly
 
-trustDomain: vshasta.io
+trustDomain: shasta
 
 server:
   replicaCount: 3
-  fqdn: spire-vshastaio.vshasta.io
+  fqdn: spire.local
   port: 8081
   logLevel: INFO
   jwtIssuer: http://spire.local/shasta/vshastaio
