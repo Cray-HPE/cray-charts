@@ -22,6 +22,8 @@ spec:
     grafana:
       enabled: true
   values:
+    global:
+{{ toYaml .Values.istio.global | indent 6 }}
     kiali:
 {{ toYaml .Values.istio.kiali | indent 6 }}
     prometheus:

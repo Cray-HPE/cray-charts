@@ -26,20 +26,7 @@ addonComponents:
 istio:
 
   global:
-    tag: 1.6.13
-    ## This tag is used by istio-proxy sidecar image.
-    ## For reference check this line:
-    ## https://stash.us.cray.com/projects/SPET/repos/istio/browse/operator/pkg/vfs/assets.gen.go#7468
-
-    istioNamespace: istio-system
-    controlPlaneSecurityEnabled: true
-    mtls:
-      enabled: true
-      auto: false
-    proxy:
-      accessLogFile: "/dev/stdout"
-    disablePolicyChecks: false
-    useMCP: false
+    imagePullPolicy: IfNotPresent
 
   sidecarInjectorWebhook:
     rewriteAppHTTPProbe: true
