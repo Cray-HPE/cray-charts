@@ -7,6 +7,8 @@ spec:
   profile: minimal
   hub: {{ .Values.hub }}
   tag: {{ .Values.tag }}
+  meshConfig:
+{{ toYaml .Values.meshConfig | indent 6 }}
   components:
     pilot:
       enabled: true

@@ -11,6 +11,9 @@ pilot:
   hub: dtr.dev.cray.com/cray
   tag: 1.6.13-cray1-20210202183713_549528c5da
 
+meshConfig:
+  accessLogFile: /dev/stdout
+
 addonComponents:
   prometheus:
     enabled: true
