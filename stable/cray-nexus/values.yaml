@@ -13,10 +13,7 @@ sonatype-nexus:
   fullnameOverride: nexus
 
   deploymentStrategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 100%
-      maxUnavailable: 100%
+    type: Recreate
 
   nexus:
     imageName: sonatype/nexus3
@@ -41,7 +38,7 @@ sonatype-nexus:
   persistence:
     enabled: true
     storageClass: ceph-cephfs-external
-    accessMode: ReadWriteOnce
+    accessMode: ReadWriteMany
     storageSize: 1000Gi
     annotations:
       helm.sh/resource-policy: keep

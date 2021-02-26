@@ -2,7 +2,7 @@
 ---
 apiVersion: v1
 name: cray-nexus
-version: 0.5.5
+version: 0.6.0
 description: Sonatype Nexus is an open source repository manager
 appVersion: 3.25.0
 home: "spet/cray-charts"
