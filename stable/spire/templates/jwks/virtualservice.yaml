@@ -8,6 +8,25 @@ spec:
   gateways:
   - services/services-gateway
   http:
+  - headers:
+      response:
+        set:
+          Cache-Control: max-age=300
+        remove:
+        - expires
+        - pragma
+    match:
+    - method:
+        exact: GET
+      uri:
+        exact: /{{ .Values.jwks.uriPrefix }}/keys
+    rewrite:
+      uri: /keys
+    route:
+    - destination:
+        host: {{ include "spire.name" . }}-jwks
+        port:
+          number: {{ .Values.jwks.port }}
   - match:
     - uri:
         prefix: /{{ .Values.jwks.uriPrefix }}/
