@@ -23,7 +23,7 @@ server:
     computeClusterEntry: /compute
     ncnEntry: /ncn/tenant1
     ncnClusterEntry: /ncn
-    tokenTTL: 1200
+    tokenTTL: 10800
 
   init:
     repository: spiffe-io/wait-for-it
