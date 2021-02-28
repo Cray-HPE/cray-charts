@@ -37,7 +37,7 @@ server:
 
   image:
     repository: spiffe-io/spire-server
-    tag: 0.11.0
+    tag: 0.12.0
     pullPolicy: IfNotPresent
 
   registration:
@@ -88,7 +88,7 @@ agent:
 
   image:
     repository: spiffe-io/spire-agent
-    tag: 0.11.0
+    tag: 0.12.0
     pullPolicy: IfNotPresent
 
 jwks:
@@ -100,7 +100,7 @@ jwks:
 
   image:
     repository: spiffe-io/oidc-discovery-provider
-    tag: 0.11.0
+    tag: 0.12.0
     pullPolicy: IfNotPresent
 
   nginx:
