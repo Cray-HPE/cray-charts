@@ -35,6 +35,7 @@ data:
         plugin_data {
           database_type = "postgres"
           connection_string = "dbname={{ .Values.server.database }} user=POSTGRESUSER password=POSTGRESPASS host={{ include "spire.fullname" . }}-postgres"
+          max_open_conns = {{ .Values.server.maxOpenDBConns }}
         }
       }
 

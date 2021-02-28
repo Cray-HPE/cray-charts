@@ -17,6 +17,7 @@ server:
   caTTL: 24h
   svidDefaultTTL: 12h
   database: spire
+  maxOpenDBConns: 20
   registrationPort: 54440
   tokenService:
     computeEntry: /compute/tenant1
