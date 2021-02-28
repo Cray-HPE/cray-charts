@@ -68,11 +68,11 @@ cray-service:
       issuer: cert-manager-issuer-common
     resources:
       limits:
-        cpu: "2"
+        cpu: "4"
         memory: 4Gi
       requests:
-        cpu: 100m
-        memory: 256Mi
+        cpu: "2"
+        memory: 2Gi
 
 tls:
   issuer: cert-manager-issuer-common
