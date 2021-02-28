@@ -8,6 +8,9 @@ metadata:
 data:
   spire-server.conf: |-
     server {
+      ratelimit = {
+        attestation = false
+      }
       bind_address = "0.0.0.0"
       bind_port = "{{ .Values.server.port }}"
       trust_domain = "{{ .Values.trustDomain }}"
