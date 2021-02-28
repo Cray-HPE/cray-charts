@@ -117,7 +117,7 @@ bundle:
 
   image:
     repository: cray/cray-spire-bundle
-    tag: 0.1.0-20201008162809_bbf2f42
+    tag: 0.1.0-
     pullPolicy: IfNotPresent
 
 bss:
