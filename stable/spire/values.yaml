@@ -10,7 +10,8 @@ trustDomain: shasta
 
 server:
   replicaCount: 3
-  fqdn: spire.local
+  fqdnCompute: spire-local.local
+  fqdnNCN: spire.local
   port: 8081
   logLevel: INFO
   jwtIssuer: http://spire.local/shasta/vshastaio

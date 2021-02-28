@@ -11,7 +11,10 @@ spec:
   - match:
     - port: 8081
       sniHosts:
-      - {{ .Values.server.fqdn }}
+      - {{ .Values.server.fqdnNCN }}
+      {{- if  ne .Values.server.fqdnNCN .Values.server.fqdnCompute }}
+      - {{ .Values.server.fqdnCompute }}
+      {{- end }}
     route:
     - destination:
         host: spire-server

@@ -28,7 +28,7 @@ spec:
             - name: DOMAIN
               value: "{{ .Values.trustDomain }}"
             - name: SERVER
-              value: "{{ .Values.server.fqdn }}"
+              value: "{{ .Values.server.fqdnCompute }}"
             - name: BUNDLE
               value: "/run/spire/bundle/bundle.crt"
           ports:
