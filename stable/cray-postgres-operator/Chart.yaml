@@ -1,9 +1,9 @@
 #
-# Copyright 2020 Hewlett Packard Enterprise Development LP
+# Copyright 2020, 2021 Hewlett Packard Enterprise Development LP
 #
 apiVersion: v1
 name: cray-postgres-operator
-version: 0.10.1
+version: 0.10.2
 appVersion: "852f292" # the postgres-operator repo sha
 home: "cloud/cray-charts"
 description: Cray-specific parent chart of github.com/zalando/postgres-operator

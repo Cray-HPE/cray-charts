@@ -1,5 +1,5 @@
 #
-# Copyright 2020 Hewlett Packard Enterprise Development LP
+# Copyright 2020, 2021 Hewlett Packard Enterprise Development LP
 #
 # Full available options can be seen here: https://github.com/zalando/postgres-operator/blob/c1d108a8321190559e4280b440ffe448339f656f/charts/postgres-operator/values.yaml
 
@@ -25,7 +25,7 @@ postgres-operator:
   # Deploy "postgres_exporter" as sidecar container to "postgres"
   sidecars:
     - name: "exporter"
-      image: "cache/postgres-exporter:0.8.1"
+      image: "cache/postgres-exporter:0.8.2"
       ports:
         - name: http
           containerPort: 9187
