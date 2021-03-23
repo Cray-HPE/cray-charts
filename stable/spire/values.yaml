@@ -28,8 +28,8 @@ server:
     tokenTTL: 10800
 
   init:
-    repository: spiffe-io/wait-for-it
-    tag: latest
+    repository: gcr.io/sdlc-ops/wait-for-it
+    tag: "20210322"
     pullPolicy: IfNotPresent
 
   init2:
