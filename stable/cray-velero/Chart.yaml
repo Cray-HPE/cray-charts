@@ -5,4 +5,4 @@ sources:
 - https://github.com/vmware-tanzu/velero
 - https://github.com/vmware-tanzu/helm-charts
 name: cray-velero
-version: 0.1.1
+version: 0.0.2

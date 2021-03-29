@@ -3,4 +3,4 @@ appVersion: 0.12.0
 description: An extension of the official etcd-operator helm chart
 name: cray-etcd-operator
 home: "cloud/cray-charts"
-version: 0.15.0 # We have to rev this anytime we change things
+version: 0.14.1 # We have to rev this anytime we change things
