@@ -1,1 +1,0 @@
-The official etcd-operator chart installed with some cray-specific overrides and defaults

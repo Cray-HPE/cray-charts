@@ -1,4 +1,0 @@
-apiVersion: v1
-name: cray-etcd-defrag
-description: Defrags etcd clusters
-version: 0.2.3

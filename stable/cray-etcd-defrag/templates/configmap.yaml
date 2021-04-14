@@ -1,8 +1,0 @@
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: etcd-defrag
-data:
-  etcd_defrag.sh: |-
-    {{- .Files.Get "files/etcd_defrag.sh" | nindent 4 }}
