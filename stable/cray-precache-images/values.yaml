@@ -17,4 +17,4 @@ nameOverride: ""
 fullnameOverride: ""
 podAnnotations: {}
 imagesHost: "dtr.dev.cray.com"
-alpineImage: baseos/alpine:3.11.5
+alpineImage: baseos/alpine:3.12
