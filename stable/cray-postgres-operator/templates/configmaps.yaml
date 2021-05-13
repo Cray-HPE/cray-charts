@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: postgres-nodes-pod-env
-  namespace: {{ .Release.Namespace }}
-data:
-  DEVELOP: "1"
-  SPILO_PROVIDER: "local"
