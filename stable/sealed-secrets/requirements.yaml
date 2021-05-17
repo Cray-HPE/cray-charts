@@ -1,5 +1,0 @@
----
-dependencies:
-  - name: sealed-secrets
-    version: 1.10.1
-    repository: "@stable"

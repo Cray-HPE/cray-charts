@@ -1,5 +1,0 @@
----
-dependencies:
-  - name: node-problem-detector
-    version: 1.7.6
-    repository: "@stable"

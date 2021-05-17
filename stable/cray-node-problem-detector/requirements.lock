@@ -1,6 +1,0 @@
-dependencies:
-- name: node-problem-detector
-  repository: https://kubernetes-charts.storage.googleapis.com
-  version: 1.7.6
-digest: sha256:f50b75c45c75bedb24497249c915fbbdca3bc9ad766533680d2f2e082fc30902
-generated: "2020-05-07T15:04:43.642071-06:00"

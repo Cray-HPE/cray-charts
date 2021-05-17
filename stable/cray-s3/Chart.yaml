@@ -1,4 +1,0 @@
-apiVersion: v1
-name: cray-s3
-description: Exposes Ceph Rados gateways
-version: 0.2.0
