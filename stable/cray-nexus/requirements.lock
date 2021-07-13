@@ -1,6 +1,0 @@
-dependencies:
-- name: sonatype-nexus
-  repository: https://oteemo.github.io/charts/
-  version: 2.3.1
-digest: sha256:34d82cd1dff06de120963c044fc130bcad38dd3a60e40b3273ff0277f2cf2707
-generated: "2020-07-29T17:50:42.702478-05:00"
